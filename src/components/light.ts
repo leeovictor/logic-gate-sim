@@ -3,10 +3,10 @@ import type { ComponentDef } from "../types";
 export const lightComponent: ComponentDef = {
   type: "light",
   label: "Light",
-  width: 50,
-  height: 40,
+  width: 40,
+  height: 30,
   pins: [
-    { direction: "input", x: 0, y: 20 },
+    { direction: "input", x: 0, y: 15 },
   ],
   defaultState: { value: 0 },
   evaluate(inputs, state) {
@@ -17,7 +17,7 @@ export const lightComponent: ComponentDef = {
     const w = this.width;
     const h = this.height;
     const value = state?.value ?? 0;
-    const radius = 15;
+    const radius = 12;
     const lineLen = w - radius * 2;
     const centerX = x + lineLen + radius;
     const centerY = y + h / 2;
@@ -41,7 +41,7 @@ export const lightComponent: ComponentDef = {
 
     // Value text
     ctx.fillStyle = "#1a1a1a";
-    ctx.font = "bold 16px monospace";
+    ctx.font = "bold 13px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(String(value ? 1 : 0), centerX, centerY);

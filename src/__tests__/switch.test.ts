@@ -10,16 +10,16 @@ describe("switch component", () => {
   it("tem type, label, width, height corretos", () => {
     expect(switchComponent.type).toBe("switch");
     expect(switchComponent.label).toBe("Switch");
-    expect(switchComponent.width).toBe(50);
-    expect(switchComponent.height).toBe(40);
+    expect(switchComponent.width).toBe(40);
+    expect(switchComponent.height).toBe(30);
   });
 
   it("tem 1 pin de output na posição correta", () => {
     expect(switchComponent.pins).toHaveLength(1);
     expect(switchComponent.pins[0]).toEqual({
       direction: "output",
-      x: 50,
-      y: 20,
+      x: 40,
+      y: 15,
     });
   });
 

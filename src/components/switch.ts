@@ -3,10 +3,10 @@ import type { ComponentDef } from "../types";
 export const switchComponent: ComponentDef = {
   type: "switch",
   label: "Switch",
-  width: 50,
-  height: 40,
+  width: 40,
+  height: 30,
   pins: [
-    { direction: "output", x: 50, y: 20 },
+    { direction: "output", x: 40, y: 15 },
   ],
   defaultState: { value: 0 },
   evaluate(_inputs, state) {
@@ -16,13 +16,13 @@ export const switchComponent: ComponentDef = {
     const w = this.width;
     const h = this.height;
     const value = state?.value ?? 0;
-    const bodyW = 38;
+    const bodyW = 30;
     const lineLen = w - bodyW;
 
     // Body rectangle
     ctx.fillStyle = value ? "#22c55e" : "#d1d5db";
     ctx.strokeStyle = "#1a1a1a";
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.rect(x, y, bodyW, h);
     ctx.fill();
@@ -30,7 +30,7 @@ export const switchComponent: ComponentDef = {
 
     // Value text
     ctx.fillStyle = "#1a1a1a";
-    ctx.font = "bold 16px monospace";
+    ctx.font = "bold 13px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(String(value ? 1 : 0), x + bodyW / 2, y + h / 2);

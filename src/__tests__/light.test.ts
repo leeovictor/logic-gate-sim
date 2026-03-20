@@ -6,8 +6,8 @@ describe("light component", () => {
   it("tem type, label, width, height corretos", () => {
     expect(lightComponent.type).toBe("light");
     expect(lightComponent.label).toBe("Light");
-    expect(lightComponent.width).toBe(50);
-    expect(lightComponent.height).toBe(40);
+    expect(lightComponent.width).toBe(40);
+    expect(lightComponent.height).toBe(30);
   });
 
   it("tem 1 pin de input na posição correta", () => {
@@ -15,7 +15,7 @@ describe("light component", () => {
     expect(lightComponent.pins[0]).toEqual({
       direction: "input",
       x: 0,
-      y: 20,
+      y: 15,
     });
   });
 
