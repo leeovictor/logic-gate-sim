@@ -120,4 +120,50 @@ describe("saveCircuit / loadCircuit", () => {
     });
     expect(loadCircuit()).toBeNull();
   });
+
+  it("migrates v1 circuit to v2 (old wires to wireSegments)", () => {
+    // V1 format with old Wire structure
+    storageMock["circuit"] = JSON.stringify({
+      version: 1,
+      components: [
+        { id: "comp-0", type: "switch", position: { x: 0, y: 0 }, state: { value: 0 } },
+        { id: "comp-1", type: "light", position: { x: 100, y: 0 }, state: { value: 0 } },
+      ],
+      wires: [
+        { id: "wire-0", from: { type: "pin", componentId: "comp-0", pinIndex: 0 }, to: { type: "pin", componentId: "comp-1", pinIndex: 0 } },
+      ],
+      _nextId: 2,
+      _nextWireId: 1,
+    });
+
+    const loaded = loadCircuit();
+    expect(loaded).not.toBeNull();
+    expect(loaded!.components).toHaveLength(2);
+    expect(loaded!.wireSegments).toHaveLength(1);
+    expect(loaded!._nextWireId).toBe(1);
+  });
+
+  it("handles v2 circuit with wireSegments and junctions", () => {
+    storageMock["circuit"] = JSON.stringify({
+      version: 2,
+      components: [
+        { id: "comp-0", type: "and-gate", position: { x: 0, y: 0 }, state: { pinValues: undefined } },
+      ],
+      wireSegments: [
+        { id: "wire-0", from: { type: "pin", componentId: "comp-0", pinIndex: 0 }, to: { type: "point", x: 50, y: 50 } },
+      ],
+      junctions: [
+        { id: "junc-0", position: { x: 100, y: 100 } },
+      ],
+      _nextId: 1,
+      _nextWireId: 1,
+      _nextJunctionId: 1,
+    });
+
+    const loaded = loadCircuit();
+    expect(loaded).not.toBeNull();
+    expect(loaded!.wireSegments).toHaveLength(1);
+    expect(loaded!.junctions).toHaveLength(1);
+    expect((loaded!.wireSegments[0].to as any).x).toBe(50);
+  });
 });

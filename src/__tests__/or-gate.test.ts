@@ -46,4 +46,16 @@ describe("orGate", () => {
   it("evaluate: OR(0,0) = 0", () => {
     expect(orGate.evaluate([0, 0], {})).toEqual([0]);
   });
+
+  it("evaluate: OR(E, 0) = E (error propagates)", () => {
+    expect(orGate.evaluate(["E", 0], {})).toEqual(["E"]);
+  });
+
+  it("evaluate: OR(1, E) = E (error propagates)", () => {
+    expect(orGate.evaluate([1, "E"], {})).toEqual(["E"]);
+  });
+
+  it("evaluate: OR(E, E) = E (error propagates)", () => {
+    expect(orGate.evaluate(["E", "E"], {})).toEqual(["E"]);
+  });
 });

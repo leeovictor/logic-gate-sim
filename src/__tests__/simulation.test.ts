@@ -153,6 +153,49 @@ describe("evaluateCircuit", () => {
     expect(gate1Pins[2]).toBe(0); // gate1 output
     expect(gate2Pins[2]).toBe(0); // gate2 output
   });
+
+  it("ciclo com multi-driver detecta error state", () => {
+    const state = createEditorState();
+    const sw1 = addComponent(state, "switch", { x: 0, y: 0 });
+    const sw2 = addComponent(state, "switch", { x: 100, y: 0 });
+    const light = addComponent(state, "light", { x: 200, y: 0 });
+
+    // Create a junction and connect both switches to it
+    state.junctions.push({ id: "junc-0", position: { x: 150, y: 50 } });
+
+    addWire(state, { type: "pin", componentId: sw1.id, pinIndex: 0 }, { type: "junction", junctionId: "junc-0" });
+    addWire(state, { type: "junction", junctionId: "junc-0" }, { type: "pin", componentId: light.id, pinIndex: 0 });
+    addWire(state, { type: "pin", componentId: sw2.id, pinIndex: 0 }, { type: "junction", junctionId: "junc-0" });
+
+    state.simulationEnabled = true;
+    sw1.state.value = 1;
+    sw2.state.value = 0;
+    evaluateCircuit(state);
+
+    // Light should receive error state (E) due to conflicting drivers
+    expect(light.state.value).toBe("E");
+  });
+
+  it("multi-driver com mesmo valor não gera error", () => {
+    const state = createEditorState();
+    const sw1 = addComponent(state, "switch", { x: 0, y: 0 });
+    const sw2 = addComponent(state, "switch", { x: 100, y: 0 });
+    const light = addComponent(state, "light", { x: 200, y: 0 });
+
+    state.junctions.push({ id: "junc-0", position: { x: 150, y: 50 } });
+
+    addWire(state, { type: "pin", componentId: sw1.id, pinIndex: 0 }, { type: "junction", junctionId: "junc-0" });
+    addWire(state, { type: "junction", junctionId: "junc-0" }, { type: "pin", componentId: light.id, pinIndex: 0 });
+    addWire(state, { type: "pin", componentId: sw2.id, pinIndex: 0 }, { type: "junction", junctionId: "junc-0" });
+
+    state.simulationEnabled = true;
+    sw1.state.value = 1;
+    sw2.state.value = 1;
+    evaluateCircuit(state);
+
+    // Light should receive 1 (both drivers agree)
+    expect(light.state.value).toBe(1);
+  });
 });
 
 describe("clearAllPinValues", () => {

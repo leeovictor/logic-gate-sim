@@ -46,4 +46,16 @@ describe("andGate", () => {
   it("evaluate: AND(0,0) = 0", () => {
     expect(andGate.evaluate([0, 0], {})).toEqual([0]);
   });
+
+  it("evaluate: AND(E, 0) = E (error propagates)", () => {
+    expect(andGate.evaluate(["E", 0], {})).toEqual(["E"]);
+  });
+
+  it("evaluate: AND(1, E) = E (error propagates)", () => {
+    expect(andGate.evaluate([1, "E"], {})).toEqual(["E"]);
+  });
+
+  it("evaluate: AND(E, E) = E (error propagates)", () => {
+    expect(andGate.evaluate(["E", "E"], {})).toEqual(["E"]);
+  });
 });

@@ -48,6 +48,12 @@ describe("light component", () => {
     expect(lightComponent.evaluate([0], s)).toEqual([]);
     expect(s.value).toBe(0);
   });
+
+  it("evaluate: atualiza state.value com error input (E)", () => {
+    const s: Record<string, unknown> = { value: 0 };
+    expect(lightComponent.evaluate(["E"], s)).toEqual([]);
+    expect(s.value).toBe("E");
+  });
 });
 
 describe("light state", () => {

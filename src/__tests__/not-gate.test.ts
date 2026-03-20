@@ -38,4 +38,8 @@ describe("notGate", () => {
   it("evaluate: NOT(1) = 0", () => {
     expect(notGate.evaluate([1], {})).toEqual([0]);
   });
+
+  it("evaluate: NOT(E) = E (error propagates)", () => {
+    expect(notGate.evaluate(["E"], {})).toEqual(["E"]);
+  });
 });
