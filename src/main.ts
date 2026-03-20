@@ -43,6 +43,7 @@ const toolbar = createToolbar(
     toggleSimulation(state);
     evaluateCircuit(state);
   },
+  state.events,
 );
 document.body.prepend(toolbar);
 

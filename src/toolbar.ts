@@ -54,9 +54,18 @@ const toolEntries: ToolEntry[] = [
 export function createToolbar(
   onToolSelect: (tool: ToolMode | null) => void,
   onSimulationToggle: (enabled: boolean) => void,
+  events: EventTarget,
 ): HTMLDivElement {
   const toolbar = document.createElement("div");
   toolbar.className = "toolbar";
+
+  // Subscribe to toolchange events from state mutations
+  events.addEventListener("toolchange", (e: Event) => {
+    const customEvent = e as CustomEvent<ToolMode | null>;
+    if (customEvent.detail === null) {
+      deactivateAll();
+    }
+  });
 
   // Track all top-level clickable elements for deactivation
   const topButtons: HTMLButtonElement[] = [];

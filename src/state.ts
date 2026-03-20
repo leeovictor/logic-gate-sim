@@ -13,6 +13,7 @@ export function createEditorState(): EditorState {
     dragging: null,
     selectionBox: null,
     simulationEnabled: false,
+    events: new EventTarget(),
     _nextId: 0,
     _nextWireId: 0,
   };
@@ -39,6 +40,7 @@ export function setSelectedTool(
   tool: ToolMode | null,
 ): void {
   state.selectedTool = tool;
+  state.events.dispatchEvent(new CustomEvent("toolchange", { detail: tool }));
 }
 
 export function selectComponent(state: EditorState, id: string): void {
@@ -173,6 +175,10 @@ export function toggleSwitchValue(state: EditorState, componentId: string): void
 
 export function toggleSimulation(state: EditorState): void {
   state.simulationEnabled = !state.simulationEnabled;
+  if (state.simulationEnabled) {
+    state.selectedTool = null;
+    state.events.dispatchEvent(new CustomEvent("toolchange", { detail: null }));
+  }
 }
 
 export function startSelectionBox(state: EditorState, point: Point): void {

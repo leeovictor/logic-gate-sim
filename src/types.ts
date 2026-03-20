@@ -74,6 +74,7 @@ export interface EditorState {
   dragging: DragState | null;
   selectionBox: SelectionBox | null;
   simulationEnabled: boolean;
+  events: EventTarget;
   _nextId: number;
   _nextWireId: number;
 }
