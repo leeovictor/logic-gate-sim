@@ -5,6 +5,11 @@ export const andGate: ComponentDef = {
   label: "AND Gate",
   width: 80,
   height: 50,
+  pins: [
+    { direction: "input",  x: 0,  y: 12.5 },
+    { direction: "input",  x: 0,  y: 37.5 },
+    { direction: "output", x: 80, y: 25 },
+  ],
   draw(ctx, x, y) {
     const w = this.width;
     const h = this.height;

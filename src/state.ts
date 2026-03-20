@@ -1,6 +1,8 @@
-import type { EditorState, ComponentType, ToolMode, Point, PlacedComponent } from "./types";
+import type { EditorState, ComponentType, ToolMode, Point, PlacedComponent, Wire, PendingWire } from "./types";
+import { getComponentDef } from "./renderer";
 
 let nextId = 0;
+let nextWireId = 0;
 
 export function createEditorState(): EditorState {
   return {
@@ -8,6 +10,8 @@ export function createEditorState(): EditorState {
     components: [],
     cursorPosition: null,
     selectedComponentIds: new Set(),
+    wires: [],
+    pendingWire: null,
   };
 }
 
@@ -51,8 +55,69 @@ export function clearSelection(state: EditorState): void {
 
 export function deleteSelected(state: EditorState): void {
   if (state.selectedComponentIds.size === 0) return;
+  for (const id of state.selectedComponentIds) {
+    removeWiresForComponent(state, id);
+  }
   state.components = state.components.filter(
     (c) => !state.selectedComponentIds.has(c.id),
   );
   state.selectedComponentIds.clear();
+}
+
+export function addWire(
+  state: EditorState,
+  from: PendingWire,
+  to: PendingWire,
+): Wire | null {
+  // Cannot connect a component to itself
+  if (from.componentId === to.componentId) return null;
+
+  const fromComp = state.components.find((c) => c.id === from.componentId);
+  const toComp = state.components.find((c) => c.id === to.componentId);
+  if (!fromComp || !toComp) return null;
+
+  const fromDef = getComponentDef(fromComp.type);
+  const toDef = getComponentDef(toComp.type);
+  if (!fromDef || !toDef) return null;
+
+  const fromPin = fromDef.pins[from.pinIndex];
+  const toPin = toDef.pins[to.pinIndex];
+  if (!fromPin || !toPin) return null;
+
+  // from must be output, to must be input
+  if (fromPin.direction !== "output" || toPin.direction !== "input") return null;
+
+  // No duplicate wires
+  const isDuplicate = state.wires.some(
+    (w) =>
+      w.fromComponentId === from.componentId &&
+      w.fromPinIndex === from.pinIndex &&
+      w.toComponentId === to.componentId &&
+      w.toPinIndex === to.pinIndex,
+  );
+  if (isDuplicate) return null;
+
+  const wire: Wire = {
+    id: `wire-${nextWireId++}`,
+    fromComponentId: from.componentId,
+    fromPinIndex: from.pinIndex,
+    toComponentId: to.componentId,
+    toPinIndex: to.pinIndex,
+  };
+  state.wires.push(wire);
+  return wire;
+}
+
+export function removeWiresForComponent(state: EditorState, componentId: string): void {
+  state.wires = state.wires.filter(
+    (w) => w.fromComponentId !== componentId && w.toComponentId !== componentId,
+  );
+}
+
+export function setPendingWire(state: EditorState, componentId: string, pinIndex: number): void {
+  state.pendingWire = { componentId, pinIndex };
+}
+
+export function clearPendingWire(state: EditorState): void {
+  state.pendingWire = null;
 }

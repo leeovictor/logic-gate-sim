@@ -7,15 +7,19 @@ import {
   toggleComponentSelection,
   clearSelection,
   deleteSelected,
+  addWire,
+  setPendingWire,
+  clearPendingWire,
 } from "./state";
 import { createToolbar } from "./toolbar";
-import { drawAll, hitTest } from "./renderer";
+import { drawAll, hitTest, hitTestPin, getComponentDef } from "./renderer";
 
 const state = createEditorState();
 
 const toolbar = createToolbar((tool) => {
   setSelectedTool(state, tool);
   clearSelection(state);
+  clearPendingWire(state);
 });
 document.body.prepend(toolbar);
 
@@ -46,6 +50,32 @@ canvas.addEventListener("click", (e) => {
     } else if (!e.ctrlKey) {
       clearSelection(state);
     }
+  } else if (state.selectedTool === "wire") {
+    const hit = hitTestPin(state, point);
+    if (hit) {
+      const comp = state.components.find((c) => c.id === hit.componentId);
+      if (!comp) return;
+      const def = getComponentDef(comp.type);
+      if (!def) return;
+      const pin = def.pins[hit.pinIndex];
+      if (!pin) return;
+
+      if (state.pendingWire === null) {
+        if (pin.direction === "output") {
+          setPendingWire(state, hit.componentId, hit.pinIndex);
+        }
+      } else {
+        if (pin.direction === "input") {
+          addWire(state, state.pendingWire, hit);
+          clearPendingWire(state);
+        } else {
+          // Clicked another output — switch origin
+          setPendingWire(state, hit.componentId, hit.pinIndex);
+        }
+      }
+    } else {
+      clearPendingWire(state);
+    }
   } else if (state.selectedTool) {
     addComponent(state, state.selectedTool, point);
     clearSelection(state);
@@ -55,6 +85,9 @@ canvas.addEventListener("click", (e) => {
 window.addEventListener("keydown", (e) => {
   if (e.key === "Delete") {
     deleteSelected(state);
+  }
+  if (e.key === "Escape") {
+    clearPendingWire(state);
   }
 });
 
