@@ -6,7 +6,7 @@ import { isValidCircuit, migrateV1toV2 } from "./persistence";
 // Ordered array for ComponentType ↔ byte enum mapping (index = byte value)
 const COMPONENT_TYPES: ComponentType[] = ["and-gate", "or-gate", "not-gate", "switch", "light"];
 
-const FORMAT_VERSION = 3;
+const FORMAT_VERSION = 4;
 
 // ---- Base64 URL-safe helpers ----
 
@@ -86,7 +86,8 @@ function readWireEndpoint(view: DataView, offset: number): { ep: WireSegment["fr
 }
 
 /**
- * Serialize EditorState to compact binary format (v3).
+ * Serialize EditorState to compact binary format (v4).
+ * v4 adds waypoint support to wire segments.
  */
 export function serializeToBinary(state: EditorState): Uint8Array {
   const componentIds = state.components.map((c) => c.id);
@@ -97,6 +98,11 @@ export function serializeToBinary(state: EditorState): Uint8Array {
   size += state.components.length * 6;
   for (const w of state.wireSegments) {
     size += wireEndpointSize(w.from) + wireEndpointSize(w.to);
+    // Add waypoint count (1 byte) + waypoints (4 bytes each = 2 int16 for x,y)
+    size += 1; // waypoint count
+    if (w.waypoints && w.waypoints.length > 0) {
+      size += w.waypoints.length * 4;
+    }
   }
   size += state.junctions.length * 4;
 
@@ -123,10 +129,22 @@ export function serializeToBinary(state: EditorState): Uint8Array {
     view.setUint8(offset, stateFlags); offset++;
   }
 
-  // Wire segments
+  // Wire segments (v4: includes waypoints)
   for (const w of state.wireSegments) {
     offset = writeWireEndpoint(view, offset, w.from, componentIds, junctionIds);
     offset = writeWireEndpoint(view, offset, w.to, componentIds, junctionIds);
+    
+    // Write waypoint count
+    const waypointCount = w.waypoints ? w.waypoints.length : 0;
+    view.setUint8(offset, waypointCount); offset++;
+    
+    // Write waypoints
+    if (w.waypoints && w.waypoints.length > 0) {
+      for (const wp of w.waypoints) {
+        view.setInt16(offset, wp.x, true); offset += 2;
+        view.setInt16(offset, wp.y, true); offset += 2;
+      }
+    }
   }
 
   // Junctions
@@ -142,14 +160,17 @@ export function serializeToBinary(state: EditorState): Uint8Array {
 }
 
 /**
- * Deserialize binary format (v3) to SerializedCircuitV2.
+ * Deserialize binary format (v3 or v4) to SerializedCircuitV2.
+ * v3: no waypoints
+ * v4: includes waypoints in wire segments
  */
 export function deserializeFromBinary(bytes: Uint8Array): SerializedCircuitV2 | null {
   try {
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     let offset = 0;
 
-    if (view.getUint8(offset) !== FORMAT_VERSION) return null;
+    const version = view.getUint8(offset);
+    if (version !== 3 && version !== 4) return null;
     offset++;
 
     const componentCount = view.getUint16(offset, true); offset += 2;
@@ -178,7 +199,28 @@ export function deserializeFromBinary(bytes: Uint8Array): SerializedCircuitV2 | 
       offset = fromResult.offset;
       const toResult = readWireEndpoint(view, offset);
       offset = toResult.offset;
-      wireSegments.push({ id: `wire-${i}`, from: fromResult.ep, to: toResult.ep });
+      
+      let waypoints: undefined | any[] = undefined;
+      
+      // v4: read waypoints
+      if (version === 4) {
+        const waypointCount = view.getUint8(offset); offset++;
+        if (waypointCount > 0) {
+          waypoints = [];
+          for (let j = 0; j < waypointCount; j++) {
+            const x = view.getInt16(offset, true); offset += 2;
+            const y = view.getInt16(offset, true); offset += 2;
+            waypoints.push({ x, y });
+          }
+        }
+      }
+      
+      wireSegments.push({
+        id: `wire-${i}`,
+        from: fromResult.ep,
+        to: toResult.ep,
+        waypoints,
+      });
     }
 
     const junctions: WireJunction[] = [];

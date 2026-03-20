@@ -12,6 +12,7 @@ export function createEditorState(): EditorState {
     wireSegments: [],
     junctions: [],
     pendingWire: null,
+    pendingWaypoints: [],
     hoveredPin: null,
     dragging: null,
     selectionBox: null,

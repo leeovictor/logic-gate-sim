@@ -19,6 +19,7 @@ export {
   removeWiresForComponent,
   setPendingWire,
   setPendingWireEndpoint,
+  addPendingWaypoint,
   clearPendingWire,
   startDrag,
   startJunctionDrag,

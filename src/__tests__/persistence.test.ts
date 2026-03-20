@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { saveCircuit, loadCircuit } from "@/storage/persistence";
-import { createEditorState, addComponent, addWire } from "@/state";
+import { createEditorState, addComponent, addWire, addWireSegment } from "@/state";
 
 const storageMock: Record<string, string> = {};
 
@@ -165,5 +165,46 @@ describe("saveCircuit / loadCircuit", () => {
     expect(loaded!.wireSegments).toHaveLength(1);
     expect(loaded!.junctions).toHaveLength(1);
     expect((loaded!.wireSegments[0].to as any).x).toBe(50);
+  });
+
+  it("round-trips wires with waypoints", () => {
+    const state = createEditorState();
+    addComponent(state, "and-gate", { x: 0, y: 0 });
+    addComponent(state, "switch", { x: 200, y: 0 });
+    const waypoints = [{ x: 50, y: 50 }, { x: 150, y: 100 }];
+    addWireSegment(
+      state,
+      { type: "pin", componentId: "comp-0", pinIndex: 2 },
+      { type: "pin", componentId: "comp-1", pinIndex: 0 },
+      waypoints,
+    );
+
+    saveCircuit(state);
+    const loaded = loadCircuit();
+
+    expect(loaded).not.toBeNull();
+    expect(loaded!.wireSegments).toHaveLength(1);
+    expect(loaded!.wireSegments[0].waypoints).toEqual(waypoints);
+  });
+
+  it("v2 circuit without waypoints loads with undefined waypoints", () => {
+    storageMock["circuit"] = JSON.stringify({
+      version: 2,
+      components: [
+        { id: "comp-0", type: "switch", position: { x: 0, y: 0 }, state: { value: 0 } },
+        { id: "comp-1", type: "light", position: { x: 100, y: 0 }, state: { value: 0 } },
+      ],
+      wireSegments: [
+        { id: "wire-0", from: { type: "pin", componentId: "comp-0", pinIndex: 0 }, to: { type: "pin", componentId: "comp-1", pinIndex: 0 } },
+      ],
+      junctions: [],
+      _nextId: 2,
+      _nextWireId: 1,
+      _nextJunctionId: 0,
+    });
+
+    const loaded = loadCircuit();
+    expect(loaded).not.toBeNull();
+    expect(loaded!.wireSegments[0].waypoints).toBeUndefined();
   });
 });

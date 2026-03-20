@@ -6,8 +6,10 @@ import {
   removeWiresForComponent,
   setPendingWire,
   clearPendingWire,
+  addPendingWaypoint,
   deleteSelected,
   selectComponent,
+  addWireSegment,
 } from "@/state";
 import { getPinPosition } from "@/ui/renderer";
 import { hitTestPin } from "@/ui/hit-test";
@@ -210,5 +212,68 @@ describe("hitTestPin", () => {
     const hit = hitTestPin(state, { x: 80, y: 25 });
     expect(hit).not.toBeNull();
     expect(hit!.componentId).toBe(second.id);
+  });
+});
+
+describe("waypoints", () => {
+  it("addWireSegment aceita waypoints opcionais", () => {
+    const { state, a, b } = stateWithTwoGates();
+    const waypoints = [{ x: 50, y: 10 }, { x: 150, y: 30 }];
+    const wire = addWireSegment(
+      state,
+      { type: "pin", componentId: a.id, pinIndex: 2 },
+      { type: "pin", componentId: b.id, pinIndex: 0 },
+      waypoints,
+    );
+    expect(wire).not.toBeNull();
+    expect(wire!.waypoints).toEqual(waypoints);
+  });
+
+  it("addWireSegment sem waypoints cria wire com waypoints undefined", () => {
+    const { state, a, b } = stateWithTwoGates();
+    const wire = addWireSegment(
+      state,
+      { type: "pin", componentId: a.id, pinIndex: 2 },
+      { type: "pin", componentId: b.id, pinIndex: 0 },
+    );
+    expect(wire).not.toBeNull();
+    expect(wire!.waypoints).toBeUndefined();
+  });
+
+  it("addPendingWaypoint acumula waypoints no estado", () => {
+    const state = createEditorState();
+    expect(state.pendingWaypoints).toEqual([]);
+    addPendingWaypoint(state, { x: 50, y: 100 });
+    expect(state.pendingWaypoints).toHaveLength(1);
+    expect(state.pendingWaypoints[0]).toEqual({ x: 50, y: 100 });
+    addPendingWaypoint(state, { x: 150, y: 200 });
+    expect(state.pendingWaypoints).toHaveLength(2);
+  });
+
+  it("clearPendingWire limpa pendingWaypoints junto com pendingWire", () => {
+    const state = createEditorState();
+    setPendingWire(state, "comp-0", 2);
+    addPendingWaypoint(state, { x: 50, y: 100 });
+    addPendingWaypoint(state, { x: 150, y: 200 });
+    
+    expect(state.pendingWire).not.toBeNull();
+    expect(state.pendingWaypoints).toHaveLength(2);
+    
+    clearPendingWire(state);
+    
+    expect(state.pendingWire).toBeNull();
+    expect(state.pendingWaypoints).toEqual([]);
+  });
+
+  it("addWireSegment com waypoints vazio cria wire sem waypoints", () => {
+    const { state, a, b } = stateWithTwoGates();
+    const wire = addWireSegment(
+      state,
+      { type: "pin", componentId: a.id, pinIndex: 2 },
+      { type: "pin", componentId: b.id, pinIndex: 0 },
+      [],
+    );
+    expect(wire).not.toBeNull();
+    expect(wire!.waypoints).toBeUndefined();
   });
 });

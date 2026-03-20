@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { exportCircuitToBase64, importCircuitFromBase64, serializeToBinary, deserializeFromBinary } from "@/storage/binary-format";
 import { generateShareUrl, loadFromUrl } from "@/storage/sharing";
-import { createEditorState, addComponent, addWire } from "@/state";
+import { createEditorState, addComponent, addWire, addWireSegment } from "@/state";
 
 beforeEach(() => {
   // Mock window.location for tests
@@ -211,6 +211,49 @@ describe("serializeToBinary / deserializeFromBinary", () => {
     expect(result!.junctions[0]).toMatchObject({ position: { x: 100, y: 100 } });
     const from = result!.wireSegments[0].from;
     expect(from).toMatchObject({ type: "junction", junctionId: "junc-0" });
+  });
+
+  it("round-trips wires with waypoints (v4)", () => {
+    const state = createEditorState();
+    addComponent(state, "and-gate", { x: 0, y: 0 });
+    addComponent(state, "switch", { x: 200, y: 0 });
+    const waypoints = [{ x: 50, y: 50 }, { x: 150, y: 100 }];
+    addWireSegment(
+      state,
+      { type: "pin", componentId: "comp-0", pinIndex: 2 },
+      { type: "pin", componentId: "comp-1", pinIndex: 0 },
+      waypoints,
+    );
+
+    const bytes = serializeToBinary(state);
+    const result = deserializeFromBinary(bytes);
+
+    expect(result!.wireSegments).toHaveLength(1);
+    expect(result!.wireSegments[0].waypoints).toEqual(waypoints);
+  });
+
+  it("round-trips multiple waypoints", () => {
+    const state = createEditorState();
+    addComponent(state, "switch", { x: 0, y: 0 });
+    addComponent(state, "light", { x: 500, y: 500 });
+    const waypoints = [
+      { x: 50, y: 50 },
+      { x: 150, y: 100 },
+      { x: 250, y: 200 },
+      { x: 350, y: 300 },
+    ];
+    addWireSegment(
+      state,
+      { type: "pin", componentId: "comp-0", pinIndex: 0 },
+      { type: "pin", componentId: "comp-1", pinIndex: 0 },
+      waypoints,
+    );
+
+    const bytes = serializeToBinary(state);
+    const result = deserializeFromBinary(bytes);
+
+    expect(result!.wireSegments[0].waypoints).toHaveLength(4);
+    expect(result!.wireSegments[0].waypoints).toEqual(waypoints);
   });
 
   it("round-trips counter values", () => {

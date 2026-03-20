@@ -65,6 +65,21 @@ function drawBezierWire(ctx: CanvasRenderingContext2D, from: Point, to: Point): 
   ctx.stroke();
 }
 
+/** Draw a wire as an orthogonal polyline through waypoints */
+function drawOrthogonalWire(ctx: CanvasRenderingContext2D, from: Point, waypoints: Point[] | undefined, to: Point): void {
+  ctx.beginPath();
+  ctx.moveTo(from.x, from.y);
+  
+  if (waypoints && waypoints.length > 0) {
+    for (const wp of waypoints) {
+      ctx.lineTo(wp.x, wp.y);
+    }
+  }
+  
+  ctx.lineTo(to.x, to.y);
+  ctx.stroke();
+}
+
 function getWireSignal(state: EditorState, wireId: string): 0 | 1 | 'E' {
   // Find which net contains this wire
   const net = state.nets.find((n) => n.wireSegmentIds.includes(wireId));
@@ -99,7 +114,7 @@ function drawWireSegments(ctx: CanvasRenderingContext2D, state: EditorState): vo
       ctx.strokeStyle = "#1a1a1a";
       ctx.lineWidth = 2;
     }
-    drawBezierWire(ctx, from, to);
+    drawOrthogonalWire(ctx, from, wire.waypoints, to);
     ctx.restore();
 
     // Draw free endpoints as small open circles
@@ -189,11 +204,15 @@ function drawPendingWire(ctx: CanvasRenderingContext2D, state: EditorState): voi
   if (!state.pendingWire || !state.cursorPosition) return;
   const from = getEndpointPosition(state, state.pendingWire);
   if (!from) return;
+  
   ctx.save();
   ctx.strokeStyle = "rgba(0, 0, 0, 0.6)";
   ctx.lineWidth = 2;
   ctx.setLineDash([6, 3]);
-  drawBezierWire(ctx, from, state.cursorPosition);
+  
+  // Draw polyline through committed waypoints, then straight line to cursor
+  drawOrthogonalWire(ctx, from, state.pendingWaypoints, state.cursorPosition);
+  
   ctx.restore();
 }
 

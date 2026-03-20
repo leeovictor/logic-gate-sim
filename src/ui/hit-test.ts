@@ -33,30 +33,57 @@ export function hitTestWire(
     const to = getEndpointPosition(state, wire.to);
     if (!from || !to) continue;
 
-    const offset = Math.max(Math.abs(to.x - from.x) * 0.5, to.x < from.x ? 80 : 40);
-    const cp1x = from.x + offset;
-    const cp2x = to.x - offset;
+    // Build full path: from -> waypoints -> to
+    const pathPoints: Point[] = [from];
+    if (wire.waypoints && wire.waypoints.length > 0) {
+      pathPoints.push(...wire.waypoints);
+    }
+    pathPoints.push(to);
 
-    const SAMPLES = 20;
-    for (let i = 0; i <= SAMPLES; i++) {
-      const t = i / SAMPLES;
-      const bx = bezierPoint(from.x, cp1x, cp2x, to.x, t);
-      const by = bezierPoint(from.y, from.y, to.y, to.y, t);
-      const dx = point.x - bx;
-      const dy = point.y - by;
-      const dist2 = dx * dx + dy * dy;
-      if (dist2 < bestDist) {
-        bestDist = dist2;
-        bestResult = { wireId: wire.id, t, position: { x: bx, y: by } };
+    // Test distance to each segment
+    for (let i = 0; i < pathPoints.length - 1; i++) {
+      const p1 = pathPoints[i];
+      const p2 = pathPoints[i + 1];
+      const { distance, closest } = pointToLineSegmentDistance(point, p1, p2);
+      
+      if (distance < bestDist) {
+        bestDist = distance;
+        bestResult = {
+          wireId: wire.id,
+          t: (i + (closest === p1 ? 0 : closest === p2 ? 1 : 0.5)) / (pathPoints.length - 1),
+          position: closest,
+        };
       }
     }
   }
   return bestResult;
 }
 
-function bezierPoint(p0: number, p1: number, p2: number, p3: number, t: number): number {
-  const mt = 1 - t;
-  return mt * mt * mt * p0 + 3 * mt * mt * t * p1 + 3 * mt * t * t * p2 + t * t * t * p3;
+/** Calculate the closest point on a line segment and the distance */
+function pointToLineSegmentDistance(
+  point: Point,
+  p1: Point,
+  p2: Point,
+): { distance: number; closest: Point } {
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  const lengthSq = dx * dx + dy * dy;
+
+  if (lengthSq === 0) {
+    // Segment is a point
+    const d = Math.hypot(point.x - p1.x, point.y - p1.y);
+    return { distance: d, closest: p1 };
+  }
+
+  // Project point onto the line, clamped to segment
+  const t = Math.max(0, Math.min(1, ((point.x - p1.x) * dx + (point.y - p1.y) * dy) / lengthSq));
+  const closest: Point = {
+    x: p1.x + t * dx,
+    y: p1.y + t * dy,
+  };
+
+  const distance = Math.hypot(point.x - closest.x, point.y - closest.y);
+  return { distance, closest };
 }
 
 export function hitTestJunction(

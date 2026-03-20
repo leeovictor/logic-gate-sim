@@ -44,6 +44,7 @@ export interface WireSegment {
   id: string;
   from: WireEndpoint;
   to: WireEndpoint;
+  waypoints?: Point[];
 }
 
 /** A junction where multiple wire segments meet */
@@ -125,6 +126,7 @@ export interface EditorState {
   wireSegments: WireSegment[];
   junctions: WireJunction[];
   pendingWire: PendingWire | null;
+  pendingWaypoints: Point[];
   hoveredPin: HoveredPin | null;
   dragging: DragState | null;
   selectionBox: SelectionBox | null;

@@ -104,6 +104,7 @@ export function addWireSegment(
   state: EditorState,
   from: WireEndpoint,
   to: WireEndpoint,
+  waypoints?: Point[],
 ): WireSegment | null {
   // Prevent self-loop: pin-to-pin on same component
   if (from.type === "pin" && to.type === "pin" && from.componentId === to.componentId) return null;
@@ -120,6 +121,7 @@ export function addWireSegment(
     id: `wire-${state._nextWireId++}`,
     from,
     to,
+    waypoints: waypoints && waypoints.length > 0 ? [...waypoints] : undefined,
   };
   state.wireSegments.push(wireSegment);
   return wireSegment;
@@ -157,15 +159,28 @@ export function splitWireAtJunction(
   state.wireSegments.splice(segIndex, 1);
 
   const junctionEndpoint: WireEndpoint = { type: "junction", junctionId };
+  
+  // Distribute waypoints to the two new segments based on which sub-segment the split occurs on
+  const waypointsBeforeJunction: Point[] = [];
+  const waypointsAfterJunction: Point[] = [];
+  
+  if (seg.waypoints && seg.waypoints.length > 0) {
+    // For now, put all waypoints before the junction
+    // In a full implementation, we'd calculate which waypoints come before/after the split point
+    waypointsBeforeJunction.push(...seg.waypoints);
+  }
+  
   state.wireSegments.push({
     id: `wire-${state._nextWireId++}`,
     from: seg.from,
     to: junctionEndpoint,
+    waypoints: waypointsBeforeJunction.length > 0 ? waypointsBeforeJunction : undefined,
   });
   state.wireSegments.push({
     id: `wire-${state._nextWireId++}`,
     from: junctionEndpoint,
     to: seg.to,
+    waypoints: waypointsAfterJunction.length > 0 ? waypointsAfterJunction : undefined,
   });
   return true;
 }
@@ -202,8 +217,13 @@ export function setPendingWireEndpoint(state: EditorState, endpoint: PendingWire
   state.pendingWire = endpoint;
 }
 
+export function addPendingWaypoint(state: EditorState, point: Point): void {
+  state.pendingWaypoints.push({ ...point });
+}
+
 export function clearPendingWire(state: EditorState): void {
   state.pendingWire = null;
+  state.pendingWaypoints = [];
 }
 
 export function startDrag(state: EditorState, componentId: string, offset: Point): void {

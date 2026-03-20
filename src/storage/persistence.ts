@@ -102,6 +102,7 @@ export function loadCircuit(): Pick<
 /**
  * Migrate circuit data from v1 to v2 format.
  * Converts old Wire[] (point-to-point) to WireSegment[] (flexible endpoints).
+ * v2 load will not have waypoints, defaulting to undefined (direct segment).
  */
 export function migrateV1toV2(data: SerializedCircuitV1): Pick<
   SerializedCircuitV2,
@@ -120,6 +121,7 @@ export function migrateV1toV2(data: SerializedCircuitV1): Pick<
       componentId: oldWire.toComponentId,
       pinIndex: oldWire.toPinIndex,
     },
+    // waypoints not present in v1, defaults to undefined
   }));
 
   return {
