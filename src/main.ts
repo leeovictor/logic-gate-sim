@@ -64,6 +64,11 @@ canvas.addEventListener("click", (e) => {
   handleCanvasClick(state, e, handlerCtx);
 });
 
+canvas.addEventListener("contextmenu", (e) => {
+  e.preventDefault();
+  handleCanvasClick(state, e, handlerCtx);
+});
+
 canvas.addEventListener("mousedown", (e) => {
   handleCanvasMouseDown(state, e);
 });

@@ -70,11 +70,12 @@ export function evaluateCircuit(state: EditorState): void {
       if (!wire) return 0;
       // Only process pin-to-pin connections
       if (wire.from.type !== "pin") return 0;
+      const fromPin = wire.from;
       // Get the source component's pinValues for the output pin
-      const srcComp = state.components.find((c) => c.id === wire.from.componentId);
+      const srcComp = state.components.find((c) => c.id === fromPin.componentId);
       if (!srcComp) return 0;
       const pinValues = srcComp.state.pinValues as number[] | undefined;
-      return pinValues?.[wire.from.pinIndex] ?? 0;
+      return pinValues?.[fromPin.pinIndex] ?? 0;
     });
 
     const outputValues = def.evaluate(inputValues, comp.state);

@@ -4,19 +4,25 @@ import {
   selectComponent,
   toggleComponentSelection,
   clearSelection,
-  addWire,
-  setPendingWire,
+  selectWire,
+  toggleWireSelection,
+  selectJunction,
+  toggleJunctionSelection,
+  addWireSegment,
+  addJunction,
+  splitWireAtJunction,
+  setPendingWireEndpoint,
   clearPendingWire,
   toggleSwitchValue,
   startDrag,
+  startJunctionDrag,
   updateDrag,
   endDrag,
   startSelectionBox,
   updateSelectionBox,
   endSelectionBox,
 } from "./state";
-import { hitTest, hitTestPin } from "./renderer";
-import { getComponentDef } from "./registry";
+import { hitTest, hitTestPin, hitTestWire, hitTestJunction } from "./renderer";
 import type { HoveredPin } from "./types";
 
 export interface HandlerContext {
@@ -46,38 +52,75 @@ function handleSelectClick(state: EditorState, point: Point, e: MouseEvent): voi
     } else {
       selectComponent(state, hit.id);
     }
-  } else if (!e.ctrlKey) {
+    return;
+  }
+
+  const junctionId = hitTestJunction(state, point);
+  if (junctionId) {
+    if (e.ctrlKey) {
+      toggleJunctionSelection(state, junctionId);
+    } else {
+      selectJunction(state, junctionId);
+    }
+    return;
+  }
+
+  const wireHit = hitTestWire(state, point);
+  if (wireHit) {
+    if (e.ctrlKey) {
+      toggleWireSelection(state, wireHit.wireId);
+    } else {
+      selectWire(state, wireHit.wireId);
+    }
+    return;
+  }
+
+  if (!e.ctrlKey) {
     clearSelection(state);
   }
 }
 
-function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext): void {
-  const hit = hitTestPin(state, point);
-  if (hit) {
-    const comp = state.components.find((c) => c.id === hit.componentId);
-    if (!comp) return;
-    const def = getComponentDef(comp.type);
-    if (!def) return;
-    const pin = def.pins[hit.pinIndex];
-    if (!pin) return;
+function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext, e: MouseEvent): void {
+  if (e.button === 2) {
+    clearPendingWire(state);
+    return;
+  }
 
-    if (state.pendingWire === null) {
-      if (pin.direction === "output") {
-        setPendingWire(state, hit.componentId, hit.pinIndex);
-      }
+  const pinHit = hitTestPin(state, point);
+
+  if (state.pendingWire === null) {
+    // First click: start a wire
+    if (pinHit) {
+      setPendingWireEndpoint(state, { type: "pin", componentId: pinHit.componentId, pinIndex: pinHit.pinIndex });
     } else {
-      if (pin.direction === "input") {
-        const hitWireEndpoint = { type: "pin" as const, componentId: hit.componentId, pinIndex: hit.pinIndex };
-        addWire(state, state.pendingWire, hitWireEndpoint);
-        clearPendingWire(state);
-        ctx.reEvaluate();
-        ctx.save();
+      const wireHit = hitTestWire(state, point);
+      if (wireHit) {
+        const junction = addJunction(state, wireHit.position);
+        splitWireAtJunction(state, wireHit.wireId, junction.id);
+        setPendingWireEndpoint(state, { type: "junction", junctionId: junction.id });
       } else {
-        setPendingWire(state, hit.componentId, hit.pinIndex);
+        setPendingWireEndpoint(state, { type: "point", x: point.x, y: point.y });
       }
     }
   } else {
+    // Second click: complete the wire
+    let toEndpoint: typeof state.pendingWire;
+    if (pinHit) {
+      toEndpoint = { type: "pin", componentId: pinHit.componentId, pinIndex: pinHit.pinIndex };
+    } else {
+      const wireHit = hitTestWire(state, point);
+      if (wireHit) {
+        const junction = addJunction(state, wireHit.position);
+        splitWireAtJunction(state, wireHit.wireId, junction.id);
+        toEndpoint = { type: "junction", junctionId: junction.id };
+      } else {
+        toEndpoint = { type: "point", x: point.x, y: point.y };
+      }
+    }
+    addWireSegment(state, state.pendingWire, toEndpoint);
     clearPendingWire(state);
+    ctx.reEvaluate();
+    ctx.save();
   }
 }
 
@@ -106,7 +149,7 @@ export function handleCanvasClick(
   } else if (state.selectedTool === "select") {
     handleSelectClick(state, point, e);
   } else if (state.selectedTool === "wire") {
-    handleWireClick(state, point, ctx);
+    handleWireClick(state, point, ctx, e);
   } else {
     handlePlaceComponent(state, point, ctx);
   }
@@ -128,9 +171,19 @@ export function handleCanvasMouseDown(state: EditorState, e: MouseEvent): void {
       y: point.y - hit.position.y,
     };
     startDrag(state, hit.id, offset);
-  } else {
-    startSelectionBox(state, point);
+    return;
   }
+
+  const junctionId = hitTestJunction(state, point);
+  if (junctionId) {
+    if (!state.selectedJunctionIds.has(junctionId) && !e.ctrlKey) {
+      selectJunction(state, junctionId);
+    }
+    startJunctionDrag(state, junctionId, point);
+    return;
+  }
+
+  startSelectionBox(state, point);
 }
 
 export function handleCanvasMouseMove(state: EditorState, e: MouseEvent): void {

@@ -64,24 +64,24 @@ describe("addWire", () => {
     expect(state.wireSegments).toHaveLength(0);
   });
 
-  it("rejeita wire entre dois outputs", () => {
+  it("permite wire entre dois outputs (sem restrição de direção)", () => {
     const { state, a, b } = stateWithTwoGates();
     const wire = addWire(
       state,
       { type: "pin", componentId: a.id, pinIndex: 2 }, // output
       { type: "pin", componentId: b.id, pinIndex: 2 }, // output
     );
-    expect(wire).toBeNull();
+    expect(wire).not.toBeNull();
   });
 
-  it("rejeita wire entre dois inputs", () => {
+  it("permite wire entre dois inputs (sem restrição de direção)", () => {
     const { state, a, b } = stateWithTwoGates();
     const wire = addWire(
       state,
       { type: "pin", componentId: a.id, pinIndex: 0 }, // input
       { type: "pin", componentId: b.id, pinIndex: 0 }, // input
     );
-    expect(wire).toBeNull();
+    expect(wire).not.toBeNull();
   });
 
   it("rejeita wire duplicado (mesmos from/to)", () => {

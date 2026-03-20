@@ -1,4 +1,4 @@
-import type { EditorState, PlacedComponent, Point, PinDef } from "./types";
+import type { EditorState, PlacedComponent, Point, PinDef, WireEndpoint } from "./types";
 import { getComponentDef } from "./registry";
 
 export { getComponentDef };
@@ -58,37 +58,48 @@ function drawComponents(ctx: CanvasRenderingContext2D, state: EditorState): void
   }
 }
 
+function drawBezierWire(ctx: CanvasRenderingContext2D, from: Point, to: Point): void {
+  const offset = Math.max(Math.abs(to.x - from.x) * 0.5, to.x < from.x ? 80 : 40);
+  ctx.beginPath();
+  ctx.moveTo(from.x, from.y);
+  ctx.bezierCurveTo(from.x + offset, from.y, to.x - offset, to.y, to.x, to.y);
+  ctx.stroke();
+}
+
 function drawWires(ctx: CanvasRenderingContext2D, state: EditorState): void {
   for (const wire of state.wireSegments) {
-    // Only draw wire segments that connect two pins (not free points or junctions)
-    if (wire.from.type !== "pin" || wire.to.type !== "pin") continue;
+    const from = getEndpointPosition(state, wire.from);
+    const to = getEndpointPosition(state, wire.to);
+    if (!from || !to) continue;
 
-    const fromComp = state.components.find((c) => c.id === wire.from.componentId);
-    const toComp = state.components.find((c) => c.id === wire.to.componentId);
-    if (!fromComp || !toComp) continue;
-    const fromDef = getComponentDef(fromComp.type);
-    const toDef = getComponentDef(toComp.type);
-    if (!fromDef || !toDef) continue;
-    const fromPin = fromDef.pins[wire.from.pinIndex];
-    const toPin = toDef.pins[wire.to.pinIndex];
-    if (!fromPin || !toPin) continue;
-    const from = getPinPosition(fromComp, fromPin);
-    const to = getPinPosition(toComp, toPin);
+    const isSelected = state.selectedWireIds.has(wire.id);
     ctx.save();
-    if (state.simulationEnabled) {
-      const pinValues = fromComp.state.pinValues as number[] | undefined;
-      const signal = pinValues?.[wire.from.pinIndex] ?? 0;
+    if (isSelected) {
+      ctx.strokeStyle = "#3b82f6";
+      ctx.lineWidth = 3;
+    } else if (state.simulationEnabled && wire.from.type === "pin") {
+      const fromPin = wire.from;
+      const fromComp = state.components.find((c) => c.id === fromPin.componentId);
+      const pinValues = fromComp?.state.pinValues as number[] | undefined;
+      const signal = pinValues?.[fromPin.pinIndex] ?? 0;
       ctx.strokeStyle = signal ? "#22c55e" : "#6b7280";
       ctx.lineWidth = signal ? 2.5 : 2;
     } else {
       ctx.strokeStyle = "#1a1a1a";
       ctx.lineWidth = 2;
     }
-    const offset = Math.max(Math.abs(to.x - from.x) * 0.5, to.x < from.x ? 80 : 40);
+    drawBezierWire(ctx, from, to);
+    ctx.restore();
+  }
+
+  // Draw junctions as filled dots
+  for (const junction of state.junctions) {
+    const isSelected = state.selectedJunctionIds.has(junction.id);
+    ctx.save();
     ctx.beginPath();
-    ctx.moveTo(from.x, from.y);
-    ctx.bezierCurveTo(from.x + offset, from.y, to.x - offset, to.y, to.x, to.y);
-    ctx.stroke();
+    ctx.arc(junction.position.x, junction.position.y, isSelected ? 7 : 5, 0, Math.PI * 2);
+    ctx.fillStyle = isSelected ? "#3b82f6" : "#1a1a1a";
+    ctx.fill();
     ctx.restore();
   }
 }
@@ -140,25 +151,13 @@ function drawPinIndicators(ctx: CanvasRenderingContext2D, state: EditorState): v
 
 function drawPendingWire(ctx: CanvasRenderingContext2D, state: EditorState): void {
   if (!state.pendingWire || !state.cursorPosition) return;
-  // Only support pin-based pending wires for Phase 1
-  if (state.pendingWire.type !== "pin") return;
-  const comp = state.components.find((c) => c.id === state.pendingWire!.componentId);
-  if (!comp) return;
-  const def = getComponentDef(comp.type);
-  if (!def) return;
-  const pin = def.pins[state.pendingWire.pinIndex];
-  if (!pin) return;
-  const from = getPinPosition(comp, pin);
+  const from = getEndpointPosition(state, state.pendingWire);
+  if (!from) return;
   ctx.save();
   ctx.strokeStyle = "rgba(0, 0, 0, 0.6)";
   ctx.lineWidth = 2;
   ctx.setLineDash([6, 3]);
-  const to = state.cursorPosition;
-  const offset = Math.max(Math.abs(to.x - from.x) * 0.5, to.x < from.x ? 80 : 40);
-  ctx.beginPath();
-  ctx.moveTo(from.x, from.y);
-  ctx.bezierCurveTo(from.x + offset, from.y, to.x - offset, to.y, to.x, to.y);
-  ctx.stroke();
+  drawBezierWire(ctx, from, state.cursorPosition);
   ctx.restore();
 }
 
@@ -191,6 +190,81 @@ function drawSelectionBox(ctx: CanvasRenderingContext2D, state: EditorState): vo
 
 export function getPinPosition(comp: PlacedComponent, pinDef: PinDef): Point {
   return { x: comp.position.x + pinDef.x, y: comp.position.y + pinDef.y };
+}
+
+export function getEndpointPosition(state: EditorState, endpoint: WireEndpoint): Point | null {
+  if (endpoint.type === "pin") {
+    const comp = state.components.find((c) => c.id === endpoint.componentId);
+    if (!comp) return null;
+    const def = getComponentDef(comp.type);
+    if (!def) return null;
+    const pin = def.pins[endpoint.pinIndex];
+    if (!pin) return null;
+    return getPinPosition(comp, pin);
+  }
+  if (endpoint.type === "point") {
+    return { x: endpoint.x, y: endpoint.y };
+  }
+  if (endpoint.type === "junction") {
+    const junction = state.junctions.find((j) => j.id === endpoint.junctionId);
+    if (!junction) return null;
+    return junction.position;
+  }
+  return null;
+}
+
+export function hitTestWire(
+  state: EditorState,
+  point: Point,
+  threshold: number = 5,
+): { wireId: string; t: number; position: Point } | null {
+  let bestDist = threshold * threshold;
+  let bestResult: { wireId: string; t: number; position: Point } | null = null;
+
+  for (const wire of state.wireSegments) {
+    const from = getEndpointPosition(state, wire.from);
+    const to = getEndpointPosition(state, wire.to);
+    if (!from || !to) continue;
+
+    const offset = Math.max(Math.abs(to.x - from.x) * 0.5, to.x < from.x ? 80 : 40);
+    const cp1x = from.x + offset;
+    const cp2x = to.x - offset;
+
+    const SAMPLES = 20;
+    for (let i = 0; i <= SAMPLES; i++) {
+      const t = i / SAMPLES;
+      const bx = bezierPoint(from.x, cp1x, cp2x, to.x, t);
+      const by = bezierPoint(from.y, from.y, to.y, to.y, t);
+      const dx = point.x - bx;
+      const dy = point.y - by;
+      const dist2 = dx * dx + dy * dy;
+      if (dist2 < bestDist) {
+        bestDist = dist2;
+        bestResult = { wireId: wire.id, t, position: { x: bx, y: by } };
+      }
+    }
+  }
+  return bestResult;
+}
+
+function bezierPoint(p0: number, p1: number, p2: number, p3: number, t: number): number {
+  const mt = 1 - t;
+  return mt * mt * mt * p0 + 3 * mt * mt * t * p1 + 3 * mt * t * t * p2 + t * t * t * p3;
+}
+
+export function hitTestJunction(
+  state: EditorState,
+  point: Point,
+  radius: number = 8,
+): string | null {
+  for (const junction of state.junctions) {
+    const dx = point.x - junction.position.x;
+    const dy = point.y - junction.position.y;
+    if (dx * dx + dy * dy <= radius * radius) {
+      return junction.id;
+    }
+  }
+  return null;
 }
 
 export function hitTestPin(

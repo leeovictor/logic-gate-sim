@@ -94,6 +94,7 @@ export interface DragState {
   componentId: string;
   offset: Point;
   offsets: Map<string, Point>;
+  junctionOffsets: Map<string, Point>;
 }
 
 export interface EditorState {
@@ -101,6 +102,8 @@ export interface EditorState {
   components: PlacedComponent[];
   cursorPosition: Point | null;
   selectedComponentIds: Set<string>;
+  selectedWireIds: Set<string>;
+  selectedJunctionIds: Set<string>;
   wireSegments: WireSegment[];
   junctions: WireJunction[];
   pendingWire: PendingWire | null;
