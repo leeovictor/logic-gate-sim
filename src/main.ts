@@ -52,8 +52,8 @@ canvas.addEventListener("mousedown", (e) => {
   handleCanvasMouseDown(state, e);
 });
 
-canvas.addEventListener("mouseup", () => {
-  handleCanvasMouseUp(state);
+canvas.addEventListener("mouseup", (e) => {
+  handleCanvasMouseUp(state, e);
 });
 
 window.addEventListener("keydown", (e) => {

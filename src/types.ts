@@ -52,9 +52,15 @@ export interface PlacedComponent {
   state: Record<string, unknown>;
 }
 
+export interface SelectionBox {
+  start: Point;
+  current: Point;
+}
+
 export interface DragState {
   componentId: string;
   offset: Point;
+  offsets: Map<string, Point>;
 }
 
 export interface EditorState {
@@ -66,6 +72,7 @@ export interface EditorState {
   pendingWire: PendingWire | null;
   hoveredPin: HoveredPin | null;
   dragging: DragState | null;
+  selectionBox: SelectionBox | null;
   simulationEnabled: boolean;
   _nextId: number;
   _nextWireId: number;

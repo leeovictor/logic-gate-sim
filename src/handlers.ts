@@ -11,6 +11,9 @@ import {
   startDrag,
   updateDrag,
   endDrag,
+  startSelectionBox,
+  updateSelectionBox,
+  endSelectionBox,
 } from "./state";
 import { hitTest, hitTestPin } from "./renderer";
 import { getComponentDef } from "./registry";
@@ -112,11 +115,16 @@ export function handleCanvasMouseDown(state: EditorState, e: MouseEvent): void {
 
   const hit = hitTest(state, point);
   if (hit) {
+    if (!state.selectedComponentIds.has(hit.id) && !e.ctrlKey) {
+      selectComponent(state, hit.id);
+    }
     const offset: Point = {
       x: point.x - hit.position.x,
       y: point.y - hit.position.y,
     };
     startDrag(state, hit.id, offset);
+  } else {
+    startSelectionBox(state, point);
   }
 }
 
@@ -141,9 +149,21 @@ export function handleCanvasMouseMove(state: EditorState, e: MouseEvent): void {
       updateDrag(state, point);
     }
   }
+
+  if (state.selectionBox && mouseDownPoint) {
+    const dx = point.x - mouseDownPoint.x;
+    const dy = point.y - mouseDownPoint.y;
+    if (dx * dx + dy * dy > DRAG_THRESHOLD * DRAG_THRESHOLD) {
+      dragOccurred = true;
+    }
+    updateSelectionBox(state, point);
+  }
 }
 
-export function handleCanvasMouseUp(state: EditorState): void {
+export function handleCanvasMouseUp(state: EditorState, e: MouseEvent): void {
+  if (state.selectionBox) {
+    endSelectionBox(state, e.ctrlKey);
+  }
   if (state.dragging) {
     endDrag(state);
   }

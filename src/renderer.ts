@@ -32,6 +32,7 @@ export function drawAll(
   drawWires(ctx, state);
   drawPinIndicators(ctx, state);
   drawPendingWire(ctx, state);
+  drawSelectionBox(ctx, state);
   drawGhostPreview(ctx, state);
 }
 
@@ -159,6 +160,23 @@ function drawGhostPreview(ctx: CanvasRenderingContext2D, state: EditorState): vo
   ctx.save();
   ctx.globalAlpha = 0.4;
   def.draw(ctx, state.cursorPosition.x, state.cursorPosition.y);
+  ctx.restore();
+}
+
+function drawSelectionBox(ctx: CanvasRenderingContext2D, state: EditorState): void {
+  if (!state.selectionBox) return;
+  const { start, current } = state.selectionBox;
+  const x = Math.min(start.x, current.x);
+  const y = Math.min(start.y, current.y);
+  const w = Math.abs(current.x - start.x);
+  const h = Math.abs(current.y - start.y);
+  ctx.save();
+  ctx.fillStyle = "rgba(59, 130, 246, 0.1)";
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = "#3b82f6";
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.strokeRect(x, y, w, h);
   ctx.restore();
 }
 

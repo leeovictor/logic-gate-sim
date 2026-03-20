@@ -11,6 +11,7 @@ export function createEditorState(): EditorState {
     pendingWire: null,
     hoveredPin: null,
     dragging: null,
+    selectionBox: null,
     simulationEnabled: false,
     _nextId: 0,
     _nextWireId: 0,
@@ -127,17 +128,37 @@ export function clearPendingWire(state: EditorState): void {
 }
 
 export function startDrag(state: EditorState, componentId: string, offset: Point): void {
-  state.dragging = { componentId, offset };
+  const offsets = new Map<string, Point>();
+  if (state.selectedComponentIds.has(componentId)) {
+    const anchor = state.components.find((c) => c.id === componentId)!;
+    const clickPoint: Point = {
+      x: anchor.position.x + offset.x,
+      y: anchor.position.y + offset.y,
+    };
+    for (const id of state.selectedComponentIds) {
+      const comp = state.components.find((c) => c.id === id);
+      if (!comp) continue;
+      offsets.set(id, {
+        x: clickPoint.x - comp.position.x,
+        y: clickPoint.y - comp.position.y,
+      });
+    }
+  } else {
+    offsets.set(componentId, offset);
+  }
+  state.dragging = { componentId, offset, offsets };
 }
 
 export function updateDrag(state: EditorState, cursor: Point): void {
   if (!state.dragging) return;
-  const comp = state.components.find((c) => c.id === state.dragging!.componentId);
-  if (!comp) return;
-  comp.position = {
-    x: cursor.x - state.dragging.offset.x,
-    y: cursor.y - state.dragging.offset.y,
-  };
+  for (const [id, offset] of state.dragging.offsets) {
+    const comp = state.components.find((c) => c.id === id);
+    if (!comp) continue;
+    comp.position = {
+      x: cursor.x - offset.x,
+      y: cursor.y - offset.y,
+    };
+  }
 }
 
 export function endDrag(state: EditorState): void {
@@ -152,4 +173,43 @@ export function toggleSwitchValue(state: EditorState, componentId: string): void
 
 export function toggleSimulation(state: EditorState): void {
   state.simulationEnabled = !state.simulationEnabled;
+}
+
+export function startSelectionBox(state: EditorState, point: Point): void {
+  state.selectionBox = { start: { ...point }, current: { ...point } };
+}
+
+export function updateSelectionBox(state: EditorState, point: Point): void {
+  if (!state.selectionBox) return;
+  state.selectionBox.current = point;
+}
+
+export function endSelectionBox(state: EditorState, ctrlKey: boolean): void {
+  if (!state.selectionBox) return;
+  const { start, current } = state.selectionBox;
+  const left = Math.min(start.x, current.x);
+  const right = Math.max(start.x, current.x);
+  const top = Math.min(start.y, current.y);
+  const bottom = Math.max(start.y, current.y);
+
+  if (!ctrlKey) {
+    state.selectedComponentIds.clear();
+  }
+
+  for (const comp of state.components) {
+    const def = getComponentDef(comp.type);
+    if (!def) continue;
+    const cx = comp.position.x;
+    const cy = comp.position.y;
+    if (
+      cx >= left &&
+      cy >= top &&
+      cx + def.width <= right &&
+      cy + def.height <= bottom
+    ) {
+      state.selectedComponentIds.add(comp.id);
+    }
+  }
+
+  state.selectionBox = null;
 }
