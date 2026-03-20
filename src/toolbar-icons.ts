@@ -140,3 +140,23 @@ export function simulateIcon(): SVGSVGElement {
   });
   return svg;
 }
+
+/** Share icon: arrow pointing up-right from a rounded box (link symbol). */
+export function shareIcon(): SVGSVGElement {
+  const svg = makeSvg("0 0 24 24");
+  // Rounded box/node area
+  add(svg, "rect", {
+    x: "3", y: "13", width: "8", height: "8", rx: "2",
+    "stroke-width": "1.5",
+  });
+  // Arrow pointing up-right
+  add(svg, "path", {
+    d: "M15,7 L21,1 M21,1 L21,7 M21,1 L15,7",
+    "stroke-width": "1.5",
+  });
+  // Connecting lines/dots symbolizing sharing
+  add(svg, "circle", { cx: "18", cy: "18", r: "1.5", fill: "currentColor", stroke: "none" });
+  add(svg, "circle", { cx: "11", cy: "9", r: "1.5", fill: "currentColor", stroke: "none" });
+  return svg;
+}
+

@@ -12,17 +12,33 @@ import { drawAll } from "./renderer";
 import { evaluateCircuit } from "./simulation";
 import { handleCanvasClick, handleCanvasMouseDown, handleCanvasMouseMove, handleCanvasMouseUp } from "./handlers";
 import { saveCircuit, loadCircuit } from "./persistence";
+import { loadFromUrl, copyShareUrl, showToast } from "./sharing";
 
 const state = createEditorState();
 
-const loaded = loadCircuit();
-if (loaded) {
-  state.components = loaded.components;
-  state.wireSegments = loaded.wireSegments;
-  state.junctions = loaded.junctions;
-  state._nextId = loaded._nextId;
-  state._nextWireId = loaded._nextWireId;
-  state._nextJunctionId = loaded._nextJunctionId;
+// Try to load from URL first (shared circuit), then fall back to localStorage
+const urlLoaded = loadFromUrl();
+if (urlLoaded) {
+  state.components = urlLoaded.components;
+  state.wireSegments = urlLoaded.wireSegments;
+  state.junctions = urlLoaded.junctions;
+  state._nextId = urlLoaded._nextId;
+  state._nextWireId = urlLoaded._nextWireId;
+  state._nextJunctionId = urlLoaded._nextJunctionId;
+  
+  // Clean up URL to remove query param for future loads
+  window.history.replaceState({}, "", window.location.pathname);
+} else {
+  // Fall back to localStorage
+  const loaded = loadCircuit();
+  if (loaded) {
+    state.components = loaded.components;
+    state.wireSegments = loaded.wireSegments;
+    state.junctions = loaded.junctions;
+    state._nextId = loaded._nextId;
+    state._nextWireId = loaded._nextWireId;
+    state._nextJunctionId = loaded._nextJunctionId;
+  }
 }
 
 function reEvaluate() {
@@ -46,6 +62,15 @@ const toolbar = createToolbar(
     evaluateCircuit(state);
   },
   state.events,
+  async () => {
+    // Share button callback
+    const success = await copyShareUrl(state);
+    if (success) {
+      showToast("Link copied to clipboard!");
+    } else {
+      showToast("Failed to copy link");
+    }
+  },
 );
 document.body.prepend(toolbar);
 

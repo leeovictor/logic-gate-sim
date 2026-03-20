@@ -214,6 +214,22 @@ function createSimToggle(
   return btn;
 }
 
+function createShareButton(onShare: () => void): HTMLButtonElement {
+  const btn = document.createElement("button");
+  const label = document.createElement("span");
+  label.textContent = "Compartilhar";
+  btn.appendChild(label);
+  btn.className = "share-button";
+  btn.title = "Compartilhar";
+  btn.setAttribute("aria-label", "Compartilhar");
+
+  btn.addEventListener("click", () => {
+    onShare();
+  });
+
+  return btn;
+}
+
 function bindToolbarShortcuts(bindings: ShortcutBindings): void {
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
@@ -262,6 +278,7 @@ export function createToolbar(
   onToolSelect: (tool: ToolMode | null) => void,
   onSimulationToggle: (enabled: boolean) => void,
   events: EventTarget,
+  onShare?: () => void,
 ): HTMLDivElement {
   const toolbar = document.createElement("div");
   toolbar.className = "toolbar";
@@ -303,6 +320,11 @@ export function createToolbar(
 
   const simBtn = createSimToggle(onSimulationToggle, () => dropdown?.close());
   toolbar.appendChild(simBtn);
+
+  if (onShare) {
+    const shareBtn = createShareButton(onShare);
+    toolbar.appendChild(shareBtn);
+  }
 
   document.addEventListener("click", (e) => {
     if (dropdown && !dropdown.wrapper.contains(e.target as Node)) {
