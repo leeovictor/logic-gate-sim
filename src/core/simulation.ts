@@ -280,6 +280,38 @@ export function stepCircuit(state: EditorState): void {
   state.stepSimulation.stepCount++;
 }
 
+export function resetStepSimulation(state: EditorState): void {
+  stopAutoStep(state);
+  state.stepSimulation.stepCount = 0;
+  state.stepSimulation.stable = false;
+  state.stepSimulation.previousNetValues.clear();
+  clearAllPinValues(state);
+  // Reset net signals to 0
+  for (const net of state.nets) {
+    net.signalValue = 0;
+  }
+}
+
+export function startAutoStep(
+  state: EditorState,
+  onStep: () => void,
+): void {
+  if (state.stepSimulation.running) return;
+  state.stepSimulation.running = true;
+  state.stepSimulation.autoStepTimer = setInterval(() => {
+    stepCircuit(state);
+    onStep();
+  }, state.stepSimulation.stepInterval);
+}
+
+export function stopAutoStep(state: EditorState): void {
+  if (state.stepSimulation.autoStepTimer !== null) {
+    clearInterval(state.stepSimulation.autoStepTimer);
+    state.stepSimulation.autoStepTimer = null;
+  }
+  state.stepSimulation.running = false;
+}
+
 export function clearAllPinValues(state: EditorState): void {
   for (const comp of state.components) {
     delete comp.state.pinValues;
