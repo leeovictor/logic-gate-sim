@@ -31,6 +31,9 @@ if (urlLoaded) {
   state._nextId = urlLoaded._nextId;
   state._nextWireId = urlLoaded._nextWireId;
   state._nextJunctionId = urlLoaded._nextJunctionId;
+  if (urlLoaded.simulationMode) {
+    state.simulationMode = urlLoaded.simulationMode;
+  }
 } else {
   // Fall back to localStorage
   const loaded = loadCircuit();
@@ -41,6 +44,9 @@ if (urlLoaded) {
     state._nextId = loaded._nextId;
     state._nextWireId = loaded._nextWireId;
     state._nextJunctionId = loaded._nextJunctionId;
+    if (loaded.simulationMode) {
+      state.simulationMode = loaded.simulationMode;
+    }
   }
 }
 

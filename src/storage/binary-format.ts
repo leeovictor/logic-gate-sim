@@ -93,7 +93,7 @@ export function serializeToBinary(state: EditorState): Uint8Array {
   const junctionIds = state.junctions.map((j) => j.id);
 
   // Calculate total size
-  let size = 13; // header
+  let size = 14; // header + simulationMode byte
   size += state.components.length * 6;
   for (const w of state.wireSegments) {
     size += wireEndpointSize(w.from) + wireEndpointSize(w.to);
@@ -134,6 +134,9 @@ export function serializeToBinary(state: EditorState): Uint8Array {
     view.setUint16(offset, j.position.x, true); offset += 2;
     view.setUint16(offset, j.position.y, true); offset += 2;
   }
+
+  // Simulation mode (1 byte: 0x00 = instant, 0x01 = step)
+  view.setUint8(offset, state.simulationMode === "step" ? 1 : 0); offset++;
 
   return new Uint8Array(buffer);
 }
@@ -185,7 +188,28 @@ export function deserializeFromBinary(bytes: Uint8Array): SerializedCircuitV2 | 
       junctions.push({ id: `junc-${i}`, position: { x, y } });
     }
 
-    return { version: 2, components, wireSegments, junctions, _nextId: nextId, _nextWireId: nextWireId, _nextJunctionId: nextJunctionId };
+    // Simulation mode (1 byte: optional for backward-compat)
+    let simulationMode: "instant" | "step" | undefined;
+    if (offset < view.byteLength) {
+      const modeFlag = view.getUint8(offset);
+      simulationMode = modeFlag === 1 ? "step" : "instant";
+    }
+
+    const deserialized: SerializedCircuitV2 = {
+      version: 2,
+      components,
+      wireSegments,
+      junctions,
+      _nextId: nextId,
+      _nextWireId: nextWireId,
+      _nextJunctionId: nextJunctionId,
+    };
+
+    if (simulationMode) {
+      deserialized.simulationMode = simulationMode;
+    }
+
+    return deserialized;
   } catch {
     return null;
   }

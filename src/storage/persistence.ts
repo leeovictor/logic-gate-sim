@@ -20,6 +20,7 @@ export interface SerializedCircuitV2 {
   _nextId: number;
   _nextWireId: number;
   _nextJunctionId: number;
+  simulationMode?: "instant" | "step";
 }
 
 type SerializedCircuit = SerializedCircuitV1 | SerializedCircuitV2;
@@ -36,7 +37,7 @@ function serializeCircuit(state: EditorState): SerializedCircuitV2 {
     state: stripPinValues(c.state),
   }));
 
-  return {
+  const serialized: SerializedCircuitV2 = {
     version: 2,
     components,
     wireSegments: state.wireSegments.map((w) => ({ ...w })),
@@ -45,6 +46,13 @@ function serializeCircuit(state: EditorState): SerializedCircuitV2 {
     _nextWireId: state._nextWireId,
     _nextJunctionId: state._nextJunctionId,
   };
+
+  // Only include simulationMode if not default
+  if (state.simulationMode !== "instant") {
+    serialized.simulationMode = state.simulationMode;
+  }
+
+  return serialized;
 }
 
 export function saveCircuit(state: EditorState): void {
@@ -59,7 +67,7 @@ export function saveCircuit(state: EditorState): void {
 
 export function loadCircuit(): Pick<
   SerializedCircuitV2,
-  "components" | "wireSegments" | "junctions" | "_nextId" | "_nextWireId" | "_nextJunctionId"
+  "components" | "wireSegments" | "junctions" | "_nextId" | "_nextWireId" | "_nextJunctionId" | "simulationMode"
 > | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -81,6 +89,7 @@ export function loadCircuit(): Pick<
         _nextId: data._nextId,
         _nextWireId: data._nextWireId,
         _nextJunctionId: data._nextJunctionId,
+        simulationMode: data.simulationMode,
       };
     }
 
@@ -96,7 +105,7 @@ export function loadCircuit(): Pick<
  */
 export function migrateV1toV2(data: SerializedCircuitV1): Pick<
   SerializedCircuitV2,
-  "components" | "wireSegments" | "junctions" | "_nextId" | "_nextWireId" | "_nextJunctionId"
+  "components" | "wireSegments" | "junctions" | "_nextId" | "_nextWireId" | "_nextJunctionId" | "simulationMode"
 > {
   // Convert old wires to new wire segments
   const wireSegments: WireSegment[] = data.wires.map((oldWire) => ({
@@ -120,6 +129,7 @@ export function migrateV1toV2(data: SerializedCircuitV1): Pick<
     _nextId: data._nextId,
     _nextWireId: data._nextWireId,
     _nextJunctionId: 0,
+    simulationMode: undefined,
   };
 }
 
