@@ -21,6 +21,7 @@ import type { HoveredPin } from "./types";
 
 export interface HandlerContext {
   reEvaluate(): void;
+  save(): void;
 }
 
 const DRAG_THRESHOLD = 3;
@@ -33,6 +34,7 @@ function handleNullToolClick(state: EditorState, point: Point, ctx: HandlerConte
   if (hit && hit.type === "switch") {
     toggleSwitchValue(state, hit.id);
     ctx.reEvaluate();
+    ctx.save();
   }
 }
 
@@ -68,6 +70,7 @@ function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext):
         addWire(state, state.pendingWire, hit);
         clearPendingWire(state);
         ctx.reEvaluate();
+        ctx.save();
       } else {
         setPendingWire(state, hit.componentId, hit.pinIndex);
       }
@@ -82,6 +85,7 @@ function handlePlaceComponent(state: EditorState, point: Point, ctx: HandlerCont
   addComponent(state, state.selectedTool, point);
   clearSelection(state);
   ctx.reEvaluate();
+  ctx.save();
 }
 
 export function handleCanvasClick(
@@ -160,12 +164,15 @@ export function handleCanvasMouseMove(state: EditorState, e: MouseEvent): void {
   }
 }
 
-export function handleCanvasMouseUp(state: EditorState, e: MouseEvent): void {
+export function handleCanvasMouseUp(state: EditorState, e: MouseEvent, ctx: HandlerContext): void {
   if (state.selectionBox) {
     endSelectionBox(state, e.ctrlKey);
   }
   if (state.dragging) {
     endDrag(state);
+    if (dragOccurred) {
+      ctx.save();
+    }
   }
   mouseDownPoint = null;
 }

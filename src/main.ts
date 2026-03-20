@@ -11,14 +11,27 @@ import { createToolbar } from "./toolbar";
 import { drawAll } from "./renderer";
 import { evaluateCircuit } from "./simulation";
 import { handleCanvasClick, handleCanvasMouseDown, handleCanvasMouseMove, handleCanvasMouseUp } from "./handlers";
+import { saveCircuit, loadCircuit } from "./persistence";
 
 const state = createEditorState();
+
+const loaded = loadCircuit();
+if (loaded) {
+  state.components = loaded.components;
+  state.wires = loaded.wires;
+  state._nextId = loaded._nextId;
+  state._nextWireId = loaded._nextWireId;
+}
 
 function reEvaluate() {
   if (state.simulationEnabled) evaluateCircuit(state);
 }
 
-const handlerCtx = { reEvaluate };
+function save() {
+  saveCircuit(state);
+}
+
+const handlerCtx = { reEvaluate, save };
 
 const toolbar = createToolbar(
   (tool) => {
@@ -53,13 +66,14 @@ canvas.addEventListener("mousedown", (e) => {
 });
 
 canvas.addEventListener("mouseup", (e) => {
-  handleCanvasMouseUp(state, e);
+  handleCanvasMouseUp(state, e, handlerCtx);
 });
 
 window.addEventListener("keydown", (e) => {
   if (e.key === "Delete") {
     deleteSelected(state);
     reEvaluate();
+    save();
   }
   if (e.key === "Escape") {
     clearPendingWire(state);
