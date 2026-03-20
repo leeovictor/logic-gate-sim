@@ -55,4 +55,6 @@ export interface EditorState {
   wires: Wire[];
   pendingWire: PendingWire | null;
   simulationEnabled: boolean;
+  _nextId: number;
+  _nextWireId: number;
 }

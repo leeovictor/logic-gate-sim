@@ -1,9 +1,5 @@
 import type { EditorState, ComponentType, ToolMode, Point, PlacedComponent, Wire, PendingWire } from "./types";
-import { getComponentDef } from "./renderer";
-import { evaluateCircuit } from "./simulation";
-
-let nextId = 0;
-let nextWireId = 0;
+import { getComponentDef } from "./registry";
 
 export function createEditorState(): EditorState {
   return {
@@ -14,6 +10,8 @@ export function createEditorState(): EditorState {
     wires: [],
     pendingWire: null,
     simulationEnabled: false,
+    _nextId: 0,
+    _nextWireId: 0,
   };
 }
 
@@ -24,13 +22,12 @@ export function addComponent(
 ): PlacedComponent {
   const def = getComponentDef(type);
   const component: PlacedComponent = {
-    id: `comp-${nextId++}`,
+    id: `comp-${state._nextId++}`,
     type,
     position,
     state: def?.defaultState ? { ...def.defaultState } : {},
   };
   state.components.push(component);
-  if (state.simulationEnabled) evaluateCircuit(state);
   return component;
 }
 
@@ -67,7 +64,6 @@ export function deleteSelected(state: EditorState): void {
     (c) => !state.selectedComponentIds.has(c.id),
   );
   state.selectedComponentIds.clear();
-  if (state.simulationEnabled) evaluateCircuit(state);
 }
 
 export function addWire(
@@ -104,14 +100,13 @@ export function addWire(
   if (isDuplicate) return null;
 
   const wire: Wire = {
-    id: `wire-${nextWireId++}`,
+    id: `wire-${state._nextWireId++}`,
     fromComponentId: from.componentId,
     fromPinIndex: from.pinIndex,
     toComponentId: to.componentId,
     toPinIndex: to.pinIndex,
   };
   state.wires.push(wire);
-  if (state.simulationEnabled) evaluateCircuit(state);
   return wire;
 }
 
@@ -133,10 +128,8 @@ export function toggleSwitchValue(state: EditorState, componentId: string): void
   const comp = state.components.find((c) => c.id === componentId);
   if (!comp || comp.type !== "switch") return;
   comp.state.value = comp.state.value ? 0 : 1;
-  if (state.simulationEnabled) evaluateCircuit(state);
 }
 
 export function toggleSimulation(state: EditorState): void {
   state.simulationEnabled = !state.simulationEnabled;
-  evaluateCircuit(state);
 }

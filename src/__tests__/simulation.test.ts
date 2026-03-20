@@ -179,6 +179,7 @@ describe("toggleSimulation integration", () => {
     sw2.state.value = 1;
 
     toggleSimulation(state);
+    evaluateCircuit(state);
     expect(state.simulationEnabled).toBe(true);
     expect(light.state.value).toBe(1);
   });
@@ -189,9 +190,11 @@ describe("toggleSimulation integration", () => {
     sw2.state.value = 1;
 
     toggleSimulation(state); // enable
+    evaluateCircuit(state);
     expect(light.state.value).toBe(1);
 
     toggleSimulation(state); // disable
+    evaluateCircuit(state);
     expect(state.simulationEnabled).toBe(false);
     expect(gate.state.pinValues).toBeUndefined();
     expect(light.state.value).toBe(0);
@@ -200,11 +203,14 @@ describe("toggleSimulation integration", () => {
   it("toggleSwitchValue reavalia quando simulação ativa", () => {
     const { state, sw1, sw2, light } = basicAndCircuit();
     toggleSimulation(state); // enable
+    evaluateCircuit(state);
 
     toggleSwitchValue(state, sw1.id);
+    evaluateCircuit(state);
     expect(light.state.value).toBe(0); // only 1 switch on
 
     toggleSwitchValue(state, sw2.id);
+    evaluateCircuit(state);
     expect(light.state.value).toBe(1); // both on
   });
 });

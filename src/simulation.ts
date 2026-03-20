@@ -1,5 +1,5 @@
 import type { EditorState } from "./types";
-import { getComponentDef } from "./renderer";
+import { getComponentDef } from "./registry";
 
 export function evaluateCircuit(state: EditorState): void {
   if (!state.simulationEnabled) {
