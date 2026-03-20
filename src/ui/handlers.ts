@@ -26,7 +26,7 @@ import { hitTest, hitTestPin, hitTestWire, hitTestJunction } from "./hit-test";
 import type { HoveredPin } from "@/core/types";
 
 export interface HandlerContext {
-  reEvaluate(): void;
+  reEvaluate(structural?: boolean): void;
   save(): void;
 }
 
@@ -39,7 +39,7 @@ function handleNullToolClick(state: EditorState, point: Point, ctx: HandlerConte
   const hit = hitTest(state, point);
   if (hit && hit.type === "switch") {
     toggleSwitchValue(state, hit.id);
-    ctx.reEvaluate();
+    ctx.reEvaluate(false); // not structural — don't rebuild nets or reset step sim
     ctx.save();
   }
 }

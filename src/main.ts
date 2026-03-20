@@ -6,10 +6,15 @@ import {
   deleteSelected,
   clearPendingWire,
   toggleSimulation,
+  setSimulationMode,
+  performStep,
+  toggleAutoStep,
+  setStepInterval,
+  resetStep,
 } from "@/state";
 import { createToolbar } from "@/ui/toolbar";
 import { drawAll } from "@/ui/renderer";
-import { evaluateCircuit } from "@/core/simulation";
+import { evaluateCircuit, buildNets, resetStepSimulation } from "@/core/simulation";
 import { handleCanvasClick, handleCanvasMouseDown, handleCanvasMouseMove, handleCanvasMouseUp } from "@/ui/handlers";
 import { saveCircuit, loadCircuit } from "@/storage/persistence";
 import { loadFromUrl, copyShareUrl } from "@/storage/sharing";
@@ -39,8 +44,30 @@ if (urlLoaded) {
   }
 }
 
-function reEvaluate() {
-  if (state.simulationEnabled) evaluateCircuit(state);
+function reEvaluate(structural = true) {
+  if (!state.simulationEnabled) return;
+  if (state.simulationMode === "step") {
+    if (structural) {
+      // Structural change: rebuild nets and reset step counter
+      state.nets = buildNets(state);
+      resetStepSimulation(state);
+    }
+    dispatchStepUpdate();
+  } else {
+    evaluateCircuit(state);
+  }
+}
+
+function dispatchStepUpdate() {
+  state.events.dispatchEvent(
+    new CustomEvent("stepupdate", {
+      detail: {
+        stepCount: state.stepSimulation.stepCount,
+        stable: state.stepSimulation.stable,
+        mode: state.simulationMode,
+      },
+    })
+  );
 }
 
 function save() {
@@ -48,6 +75,39 @@ function save() {
 }
 
 const handlerCtx = { reEvaluate, save };
+
+const stepCallbacks = {
+  onModeToggle: () => {
+    const newMode = state.simulationMode === "instant" ? "step" : "instant";
+    setSimulationMode(state, newMode);
+    if (newMode === "instant") {
+      evaluateCircuit(state);
+    }
+    dispatchStepUpdate();
+  },
+  onStep: () => {
+    performStep(state);
+    dispatchStepUpdate();
+    save();
+  },
+  onPlayPause: () => {
+    toggleAutoStep(state, () => {
+      dispatchStepUpdate();
+    });
+  },
+  onReset: () => {
+    resetStep(state);
+    dispatchStepUpdate();
+  },
+  onSpeedChange: (ms: number) => {
+    setStepInterval(state, ms);
+    // If running, restart with new interval
+    if (state.stepSimulation.running) {
+      toggleAutoStep(state, () => dispatchStepUpdate()); // stop
+      toggleAutoStep(state, () => dispatchStepUpdate()); // restart
+    }
+  },
+};
 
 const toolbar = createToolbar(
   (tool) => {
@@ -57,7 +117,8 @@ const toolbar = createToolbar(
   },
   () => {
     toggleSimulation(state);
-    evaluateCircuit(state);
+    reEvaluate();
+    dispatchStepUpdate();
   },
   state.events,
   async () => {
@@ -69,6 +130,7 @@ const toolbar = createToolbar(
       showToast("Failed to copy link");
     }
   },
+  stepCallbacks,
 );
 document.body.prepend(toolbar);
 
