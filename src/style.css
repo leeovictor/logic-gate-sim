@@ -34,7 +34,7 @@ canvas {
 }
 
 .toolbar button {
-  padding: 6px 14px;
+  padding: 6px 14px 4px;
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
@@ -43,6 +43,16 @@ canvas {
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
   white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.toolbar button .shortcut-hint {
+  font-size: 9px;
+  color: #666;
+  line-height: 1;
 }
 
 .toolbar button:hover {
