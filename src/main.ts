@@ -10,7 +10,7 @@ import {
 import { createToolbar } from "./toolbar";
 import { drawAll } from "./renderer";
 import { evaluateCircuit } from "./simulation";
-import { handleCanvasClick } from "./handlers";
+import { handleCanvasClick, handleCanvasMouseDown, handleCanvasMouseMove, handleCanvasMouseUp } from "./handlers";
 
 const state = createEditorState();
 
@@ -50,6 +50,14 @@ canvas.addEventListener("click", (e) => {
   handleCanvasClick(state, e, handlerCtx);
 });
 
+canvas.addEventListener("mousedown", (e) => {
+  handleCanvasMouseDown(state, e);
+});
+
+canvas.addEventListener("mouseup", () => {
+  handleCanvasMouseUp(state);
+});
+
 window.addEventListener("keydown", (e) => {
   if (e.key === "Delete") {
     deleteSelected(state);
@@ -61,7 +69,7 @@ window.addEventListener("keydown", (e) => {
 });
 
 canvas.addEventListener("mousemove", (e) => {
-  state.cursorPosition = { x: e.offsetX, y: e.offsetY };
+  handleCanvasMouseMove(state, e);
 });
 
 canvas.addEventListener("mouseleave", () => {

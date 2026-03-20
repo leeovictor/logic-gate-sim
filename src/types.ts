@@ -47,6 +47,11 @@ export interface PlacedComponent {
   state: Record<string, unknown>;
 }
 
+export interface DragState {
+  componentId: string;
+  offset: Point;
+}
+
 export interface EditorState {
   selectedTool: ToolMode | null;
   components: PlacedComponent[];
@@ -54,6 +59,7 @@ export interface EditorState {
   selectedComponentIds: Set<string>;
   wires: Wire[];
   pendingWire: PendingWire | null;
+  dragging: DragState | null;
   simulationEnabled: boolean;
   _nextId: number;
   _nextWireId: number;

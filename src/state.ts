@@ -9,6 +9,7 @@ export function createEditorState(): EditorState {
     selectedComponentIds: new Set(),
     wires: [],
     pendingWire: null,
+    dragging: null,
     simulationEnabled: false,
     _nextId: 0,
     _nextWireId: 0,
@@ -122,6 +123,24 @@ export function setPendingWire(state: EditorState, componentId: string, pinIndex
 
 export function clearPendingWire(state: EditorState): void {
   state.pendingWire = null;
+}
+
+export function startDrag(state: EditorState, componentId: string, offset: Point): void {
+  state.dragging = { componentId, offset };
+}
+
+export function updateDrag(state: EditorState, cursor: Point): void {
+  if (!state.dragging) return;
+  const comp = state.components.find((c) => c.id === state.dragging!.componentId);
+  if (!comp) return;
+  comp.position = {
+    x: cursor.x - state.dragging.offset.x,
+    y: cursor.y - state.dragging.offset.y,
+  };
+}
+
+export function endDrag(state: EditorState): void {
+  state.dragging = null;
 }
 
 export function toggleSwitchValue(state: EditorState, componentId: string): void {

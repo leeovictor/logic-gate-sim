@@ -8,6 +8,9 @@ import {
   setPendingWire,
   clearPendingWire,
   toggleSwitchValue,
+  startDrag,
+  updateDrag,
+  endDrag,
 } from "./state";
 import { hitTest, hitTestPin } from "./renderer";
 import { getComponentDef } from "./registry";
@@ -15,6 +18,11 @@ import { getComponentDef } from "./registry";
 export interface HandlerContext {
   reEvaluate(): void;
 }
+
+const DRAG_THRESHOLD = 3;
+
+let mouseDownPoint: Point | null = null;
+let dragOccurred = false;
 
 function handleNullToolClick(state: EditorState, point: Point, ctx: HandlerContext): void {
   const hit = hitTest(state, point);
@@ -77,6 +85,11 @@ export function handleCanvasClick(
   e: MouseEvent,
   ctx: HandlerContext,
 ): void {
+  if (dragOccurred) {
+    dragOccurred = false;
+    return;
+  }
+
   const point = { x: e.offsetX, y: e.offsetY };
 
   if (state.selectedTool === null) {
@@ -88,4 +101,43 @@ export function handleCanvasClick(
   } else {
     handlePlaceComponent(state, point, ctx);
   }
+}
+
+export function handleCanvasMouseDown(state: EditorState, e: MouseEvent): void {
+  if (state.selectedTool !== "select") return;
+  const point: Point = { x: e.offsetX, y: e.offsetY };
+  mouseDownPoint = point;
+  dragOccurred = false;
+
+  const hit = hitTest(state, point);
+  if (hit) {
+    const offset: Point = {
+      x: point.x - hit.position.x,
+      y: point.y - hit.position.y,
+    };
+    startDrag(state, hit.id, offset);
+  }
+}
+
+export function handleCanvasMouseMove(state: EditorState, e: MouseEvent): void {
+  const point: Point = { x: e.offsetX, y: e.offsetY };
+  state.cursorPosition = point;
+
+  if (state.dragging && mouseDownPoint) {
+    const dx = point.x - mouseDownPoint.x;
+    const dy = point.y - mouseDownPoint.y;
+    if (dx * dx + dy * dy > DRAG_THRESHOLD * DRAG_THRESHOLD) {
+      dragOccurred = true;
+    }
+    if (dragOccurred) {
+      updateDrag(state, point);
+    }
+  }
+}
+
+export function handleCanvasMouseUp(state: EditorState): void {
+  if (state.dragging) {
+    endDrag(state);
+  }
+  mouseDownPoint = null;
 }
