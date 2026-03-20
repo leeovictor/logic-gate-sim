@@ -11,17 +11,23 @@ import {
   setPendingWire,
   clearPendingWire,
   toggleSwitchValue,
+  toggleSimulation,
 } from "./state";
 import { createToolbar } from "./toolbar";
 import { drawAll, hitTest, hitTestPin, getComponentDef } from "./renderer";
 
 const state = createEditorState();
 
-const toolbar = createToolbar((tool) => {
-  setSelectedTool(state, tool);
-  clearSelection(state);
-  clearPendingWire(state);
-});
+const toolbar = createToolbar(
+  (tool) => {
+    setSelectedTool(state, tool);
+    clearSelection(state);
+    clearPendingWire(state);
+  },
+  () => {
+    toggleSimulation(state);
+  },
+);
 document.body.prepend(toolbar);
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;

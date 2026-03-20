@@ -48,3 +48,9 @@ canvas {
   border-color: #3a8fd6;
   color: #fff;
 }
+
+.toolbar .sim-toggle.active {
+  background: #166534;
+  border-color: #22c55e;
+  color: #fff;
+}

@@ -30,4 +30,20 @@ describe("andGate", () => {
     expect(ctx.fill).toHaveBeenCalled();
     expect(ctx.stroke).toHaveBeenCalled();
   });
+
+  it("evaluate: AND(1,1) = 1", () => {
+    expect(andGate.evaluate([1, 1], {})).toEqual([1]);
+  });
+
+  it("evaluate: AND(1,0) = 0", () => {
+    expect(andGate.evaluate([1, 0], {})).toEqual([0]);
+  });
+
+  it("evaluate: AND(0,1) = 0", () => {
+    expect(andGate.evaluate([0, 1], {})).toEqual([0]);
+  });
+
+  it("evaluate: AND(0,0) = 0", () => {
+    expect(andGate.evaluate([0, 0], {})).toEqual([0]);
+  });
 });

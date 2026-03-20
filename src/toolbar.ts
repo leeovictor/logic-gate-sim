@@ -15,6 +15,7 @@ const tools: ToolDef[] = [
 
 export function createToolbar(
   onToolSelect: (tool: ToolMode | null) => void,
+  onSimulationToggle: (enabled: boolean) => void,
 ): HTMLDivElement {
   const toolbar = document.createElement("div");
   toolbar.className = "toolbar";
@@ -40,6 +41,21 @@ export function createToolbar(
     buttons.push(btn);
     toolbar.appendChild(btn);
   }
+
+  // Spacer to push sim toggle to the right
+  const spacer = document.createElement("div");
+  spacer.style.marginLeft = "auto";
+  toolbar.appendChild(spacer);
+
+  // Simulation toggle
+  const simBtn = document.createElement("button");
+  simBtn.textContent = "\u26A1 Simulate";
+  simBtn.className = "sim-toggle";
+  simBtn.addEventListener("click", () => {
+    simBtn.classList.toggle("active");
+    onSimulationToggle(simBtn.classList.contains("active"));
+  });
+  toolbar.appendChild(simBtn);
 
   return toolbar;
 }

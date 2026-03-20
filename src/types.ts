@@ -24,6 +24,7 @@ export interface ComponentDef {
   pins: PinDef[];
   defaultState?: Record<string, unknown>;
   draw(ctx: CanvasRenderingContext2D, x: number, y: number, state?: Record<string, unknown>): void;
+  evaluate(inputs: number[], state: Record<string, unknown>): number[];
 }
 
 export interface Wire {
@@ -53,4 +54,5 @@ export interface EditorState {
   selectedComponentIds: Set<string>;
   wires: Wire[];
   pendingWire: PendingWire | null;
+  simulationEnabled: boolean;
 }

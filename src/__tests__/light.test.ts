@@ -39,6 +39,15 @@ describe("light component", () => {
     expect(() => lightComponent.draw(ctx, 10, 20)).not.toThrow();
     expect(() => lightComponent.draw(ctx, 10, 20, { value: 1 })).not.toThrow();
   });
+
+  it("evaluate: atualiza state.value com input", () => {
+    const s: Record<string, unknown> = { value: 0 };
+    expect(lightComponent.evaluate([1], s)).toEqual([]);
+    expect(s.value).toBe(1);
+
+    expect(lightComponent.evaluate([0], s)).toEqual([]);
+    expect(s.value).toBe(0);
+  });
 });
 
 describe("light state", () => {

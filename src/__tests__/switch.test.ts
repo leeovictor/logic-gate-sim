@@ -43,6 +43,11 @@ describe("switch component", () => {
     expect(() => switchComponent.draw(ctx, 10, 20)).not.toThrow();
     expect(() => switchComponent.draw(ctx, 10, 20, { value: 1 })).not.toThrow();
   });
+
+  it("evaluate: retorna state.value como output", () => {
+    expect(switchComponent.evaluate([], { value: 0 })).toEqual([0]);
+    expect(switchComponent.evaluate([], { value: 1 })).toEqual([1]);
+  });
 });
 
 describe("switch state", () => {

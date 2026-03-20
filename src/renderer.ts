@@ -74,8 +74,15 @@ export function drawAll(
     const from = getPinPosition(fromComp, fromPin);
     const to = getPinPosition(toComp, toPin);
     ctx.save();
-    ctx.strokeStyle = "#1a1a1a";
-    ctx.lineWidth = 2;
+    if (state.simulationEnabled) {
+      const pinValues = fromComp.state.pinValues as number[] | undefined;
+      const signal = pinValues?.[wire.fromPinIndex] ?? 0;
+      ctx.strokeStyle = signal ? "#22c55e" : "#6b7280";
+      ctx.lineWidth = signal ? 2.5 : 2;
+    } else {
+      ctx.strokeStyle = "#1a1a1a";
+      ctx.lineWidth = 2;
+    }
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
     ctx.lineTo(to.x, to.y);

@@ -10,6 +10,9 @@ export const andGate: ComponentDef = {
     { direction: "input",  x: 0,  y: 37.5 },
     { direction: "output", x: 80, y: 25 },
   ],
+  evaluate(inputs) {
+    return [inputs[0] && inputs[1] ? 1 : 0];
+  },
   draw(ctx, x, y) {
     const w = this.width;
     const h = this.height;

@@ -9,6 +9,10 @@ export const lightComponent: ComponentDef = {
     { direction: "input", x: 0, y: 20 },
   ],
   defaultState: { value: 0 },
+  evaluate(inputs, state) {
+    state.value = inputs[0] ? 1 : 0;
+    return [];
+  },
   draw(ctx, x, y, state) {
     const w = this.width;
     const h = this.height;

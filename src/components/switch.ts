@@ -9,6 +9,9 @@ export const switchComponent: ComponentDef = {
     { direction: "output", x: 50, y: 20 },
   ],
   defaultState: { value: 0 },
+  evaluate(_inputs, state) {
+    return [state.value ? 1 : 0];
+  },
   draw(ctx, x, y, state) {
     const w = this.width;
     const h = this.height;
