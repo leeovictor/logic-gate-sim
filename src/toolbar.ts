@@ -9,6 +9,8 @@ const tools: ToolDef[] = [
   { id: "select", label: "Select" },
   { id: "wire", label: "Wire" },
   { id: "and-gate", label: "AND Gate" },
+  { id: "or-gate", label: "OR Gate" },
+  { id: "not-gate", label: "NOT Gate" },
   { id: "switch", label: "Switch" },
   { id: "light", label: "Light" },
 ];
