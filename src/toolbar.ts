@@ -18,17 +18,17 @@ function isGroup(entry: ToolEntry): entry is ToolGroup {
 
 const toolEntries: ToolEntry[] = [
   { id: "select", label: "Select" },
-  { id: "wire", label: "Wire" },
   {
     label: "Gates",
     items: [
-      { id: "and-gate", label: "AND Gate" },
-      { id: "or-gate", label: "OR Gate" },
-      { id: "not-gate", label: "NOT Gate" },
+      { id: "and-gate", label: "AND" },
+      { id: "or-gate", label: "OR" },
+      { id: "not-gate", label: "NOT" },
     ],
   },
-  { id: "switch", label: "Switch" },
-  { id: "light", label: "Light" },
+  { id: "wire", label: "Wire" },
+  { id: "switch", label: "Input" },
+  { id: "light", label: "Output" },
 ];
 
 export function createToolbar(
