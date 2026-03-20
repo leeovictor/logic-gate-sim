@@ -10,6 +10,7 @@ export const notGate: ComponentDef = {
     { direction: "output", x: 60, y: 25 },
   ],
   evaluate(inputs) {
+    if (inputs.includes('E')) return ['E'];
     return [inputs[0] ? 0 : 1];
   },
   draw(ctx, x, y) {

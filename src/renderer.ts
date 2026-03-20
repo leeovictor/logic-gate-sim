@@ -66,6 +66,13 @@ function drawBezierWire(ctx: CanvasRenderingContext2D, from: Point, to: Point): 
   ctx.stroke();
 }
 
+function getWireSignal(state: EditorState, wireId: string): 0 | 1 | 'E' {
+  // Find which net contains this wire
+  const net = state.nets.find((n) => n.wireSegmentIds.includes(wireId));
+  if (!net) return 0;
+  return net.signalValue;
+}
+
 function drawWires(ctx: CanvasRenderingContext2D, state: EditorState): void {
   for (const wire of state.wireSegments) {
     const from = getEndpointPosition(state, wire.from);
@@ -77,13 +84,18 @@ function drawWires(ctx: CanvasRenderingContext2D, state: EditorState): void {
     if (isSelected) {
       ctx.strokeStyle = "#3b82f6";
       ctx.lineWidth = 3;
-    } else if (state.simulationEnabled && wire.from.type === "pin") {
-      const fromPin = wire.from;
-      const fromComp = state.components.find((c) => c.id === fromPin.componentId);
-      const pinValues = fromComp?.state.pinValues as number[] | undefined;
-      const signal = pinValues?.[fromPin.pinIndex] ?? 0;
-      ctx.strokeStyle = signal ? "#22c55e" : "#6b7280";
-      ctx.lineWidth = signal ? 2.5 : 2;
+    } else if (state.simulationEnabled) {
+      const signal = getWireSignal(state, wire.id);
+      if (signal === 'E') {
+        ctx.strokeStyle = "#f87171"; // Red for error
+        ctx.lineWidth = 2.5;
+      } else if (signal === 1) {
+        ctx.strokeStyle = "#22c55e"; // Green for on
+        ctx.lineWidth = 2.5;
+      } else {
+        ctx.strokeStyle = "#6b7280"; // Gray for off
+        ctx.lineWidth = 2;
+      }
     } else {
       ctx.strokeStyle = "#1a1a1a";
       ctx.lineWidth = 2;

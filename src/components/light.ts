@@ -10,6 +10,10 @@ export const lightComponent: ComponentDef = {
   ],
   defaultState: { value: 0 },
   evaluate(inputs, state) {
+    if (inputs.includes('E')) {
+      state.value = 'E';
+      return [];
+    }
     state.value = inputs[0] ? 1 : 0;
     return [];
   },
@@ -31,7 +35,9 @@ export const lightComponent: ComponentDef = {
     ctx.stroke();
 
     // Circle body (bulb)
-    ctx.fillStyle = value ? "#22c55e" : "#d1d5db";
+    const isError = value === 'E';
+    const isOn = value === 1;
+    ctx.fillStyle = isError ? "#f87171" : isOn ? "#22c55e" : "#d1d5db";
     ctx.strokeStyle = "#1a1a1a";
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -44,6 +50,6 @@ export const lightComponent: ComponentDef = {
     ctx.font = "bold 13px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(String(value ? 1 : 0), centerX, centerY);
+    ctx.fillText(String(isError ? 'E' : (isOn ? 1 : 0)), centerX, centerY);
   },
 };

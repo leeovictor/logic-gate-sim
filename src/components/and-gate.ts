@@ -11,6 +11,7 @@ export const andGate: ComponentDef = {
     { direction: "output", x: 80, y: 25 },
   ],
   evaluate(inputs) {
+    if (inputs.includes('E')) return ['E'];
     return [inputs[0] && inputs[1] ? 1 : 0];
   },
   draw(ctx, x, y) {

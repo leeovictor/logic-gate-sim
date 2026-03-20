@@ -7,6 +7,7 @@ import {
   toggleSimulation,
 } from "../state";
 import { evaluateCircuit, clearAllPinValues } from "../simulation";
+import type { SignalValue } from "../types";
 
 // Helper: create a basic circuit: Switch → AND ← Switch → Light
 function basicAndCircuit() {
@@ -134,7 +135,7 @@ describe("evaluateCircuit", () => {
     expect(light.state.value).toBe(0); // reset to default
   });
 
-  it("ciclo detectado: pula avaliação", () => {
+  it("ciclo estável: converge corretamente", () => {
     const state = createEditorState();
     const gate1 = addComponent(state, "and-gate", { x: 0, y: 0 });
     const gate2 = addComponent(state, "and-gate", { x: 200, y: 0 });
@@ -146,9 +147,11 @@ describe("evaluateCircuit", () => {
     state.simulationEnabled = true;
     evaluateCircuit(state);
 
-    // Should not crash and pinValues should be cleared
-    expect(gate1.state.pinValues).toBeUndefined();
-    expect(gate2.state.pinValues).toBeUndefined();
+    // Cycle converges: both gates stabilize at [0, 0, 0] (no inputs, so outputs are 0)
+    const gate1Pins = gate1.state.pinValues as SignalValue[];
+    const gate2Pins = gate2.state.pinValues as SignalValue[];
+    expect(gate1Pins[2]).toBe(0); // gate1 output
+    expect(gate2Pins[2]).toBe(0); // gate2 output
   });
 });
 
