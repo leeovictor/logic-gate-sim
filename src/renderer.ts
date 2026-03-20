@@ -81,9 +81,10 @@ function drawWires(ctx: CanvasRenderingContext2D, state: EditorState): void {
       ctx.strokeStyle = "#1a1a1a";
       ctx.lineWidth = 2;
     }
+    const offset = Math.max(Math.abs(to.x - from.x) * 0.5, to.x < from.x ? 80 : 40);
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
-    ctx.lineTo(to.x, to.y);
+    ctx.bezierCurveTo(from.x + offset, from.y, to.x - offset, to.y, to.x, to.y);
     ctx.stroke();
     ctx.restore();
   }
@@ -146,9 +147,11 @@ function drawPendingWire(ctx: CanvasRenderingContext2D, state: EditorState): voi
   ctx.strokeStyle = "rgba(0, 0, 0, 0.6)";
   ctx.lineWidth = 2;
   ctx.setLineDash([6, 3]);
+  const to = state.cursorPosition;
+  const offset = Math.max(Math.abs(to.x - from.x) * 0.5, to.x < from.x ? 80 : 40);
   ctx.beginPath();
   ctx.moveTo(from.x, from.y);
-  ctx.lineTo(state.cursorPosition.x, state.cursorPosition.y);
+  ctx.bezierCurveTo(from.x + offset, from.y, to.x - offset, to.y, to.x, to.y);
   ctx.stroke();
   ctx.restore();
 }
