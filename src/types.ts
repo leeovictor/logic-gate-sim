@@ -22,4 +22,5 @@ export interface PlacedComponent {
 export interface EditorState {
   selectedTool: ComponentType | null;
   components: PlacedComponent[];
+  cursorPosition: Point | null;
 }

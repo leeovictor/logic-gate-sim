@@ -6,6 +6,7 @@ export function createEditorState(): EditorState {
   return {
     selectedTool: null,
     components: [],
+    cursorPosition: null,
   };
 }
 

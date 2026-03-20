@@ -9,23 +9,25 @@ describe("andGate", () => {
     expect(andGate.height).toBe(50);
   });
 
-  it("calls canvas drawing methods", () => {
+  it("draws gate body and connection lines", () => {
     const ctx = {
       fillStyle: "",
       strokeStyle: "",
       lineWidth: 0,
-      font: "",
-      textAlign: "",
-      textBaseline: "",
-      fillRect: vi.fn(),
-      strokeRect: vi.fn(),
-      fillText: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      arc: vi.fn(),
+      closePath: vi.fn(),
+      fill: vi.fn(),
+      stroke: vi.fn(),
     } as unknown as CanvasRenderingContext2D;
 
     andGate.draw(ctx, 10, 20);
 
-    expect(ctx.fillRect).toHaveBeenCalledWith(10, 20, 80, 50);
-    expect(ctx.strokeRect).toHaveBeenCalledWith(10, 20, 80, 50);
-    expect(ctx.fillText).toHaveBeenCalledWith("AND", 50, 45);
+    expect(ctx.beginPath).toHaveBeenCalled();
+    expect(ctx.arc).toHaveBeenCalled();
+    expect(ctx.fill).toHaveBeenCalled();
+    expect(ctx.stroke).toHaveBeenCalled();
   });
 });

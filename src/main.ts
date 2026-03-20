@@ -29,6 +29,14 @@ canvas.addEventListener("click", (e) => {
   }
 });
 
+canvas.addEventListener("mousemove", (e) => {
+  state.cursorPosition = { x: e.offsetX, y: e.offsetY };
+});
+
+canvas.addEventListener("mouseleave", () => {
+  state.cursorPosition = null;
+});
+
 function render() {
   drawAll(ctx, state, canvas.width, canvas.height);
   requestAnimationFrame(render);

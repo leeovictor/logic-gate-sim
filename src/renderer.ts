@@ -23,4 +23,14 @@ export function drawAll(
       def.draw(ctx, comp.position.x, comp.position.y);
     }
   }
+
+  if (state.selectedTool && state.cursorPosition) {
+    const def = registry.get(state.selectedTool);
+    if (def) {
+      ctx.save();
+      ctx.globalAlpha = 0.4;
+      def.draw(ctx, state.cursorPosition.x, state.cursorPosition.y);
+      ctx.restore();
+    }
+  }
 }
