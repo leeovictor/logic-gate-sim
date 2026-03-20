@@ -1,4 +1,24 @@
 import type { ToolMode } from "./types";
+import {
+  selectIcon,
+  wireIcon,
+  andGateIcon,
+  orGateIcon,
+  notGateIcon,
+  switchIcon,
+  lightIcon,
+  simulateIcon,
+} from "./toolbar-icons";
+
+const toolIcons: Partial<Record<ToolMode, () => SVGSVGElement>> = {
+  select: selectIcon,
+  wire: wireIcon,
+  "and-gate": andGateIcon,
+  "or-gate": orGateIcon,
+  "not-gate": notGateIcon,
+  switch: switchIcon,
+  light: lightIcon,
+};
 
 interface ToolDef {
   id: ToolMode;
@@ -43,9 +63,7 @@ export function createToolbar(
   // Track the group wrapper (if any) for dropdown state
   let groupWrapper: HTMLDivElement | null = null;
   let groupTrigger: HTMLButtonElement | null = null;
-  let groupTriggerLabel: HTMLSpanElement | null = null;
   let groupDropdownButtons: HTMLButtonElement[] = [];
-  let groupDefaultLabel = "";
 
   function deactivateAll() {
     for (const b of topButtons) b.classList.remove("active");
@@ -71,14 +89,14 @@ export function createToolbar(
     if (!isGroup(entry)) {
       // Regular button
       const btn = document.createElement("button");
-      const label = document.createElement("span");
-      label.textContent = entry.label;
+      btn.appendChild((toolIcons[entry.id] ?? selectIcon)());
       const hint = document.createElement("span");
       hint.className = "shortcut-hint";
       hint.textContent = String(shortcutIndex);
-      btn.appendChild(label);
       btn.appendChild(hint);
       btn.dataset.tool = entry.id;
+      btn.title = entry.label;
+      btn.setAttribute("aria-label", entry.label);
 
       const toolId = entry.id;
       btn.addEventListener("click", () => {
@@ -97,21 +115,23 @@ export function createToolbar(
       shortcutIndex++;
     } else {
       // Dropdown group
-      groupDefaultLabel = entry.label;
       const wrapper = document.createElement("div");
       wrapper.className = "tool-group";
       groupWrapper = wrapper;
 
       const trigger = document.createElement("button");
       trigger.className = "tool-group-trigger";
-      const trigLabel = document.createElement("span");
-      trigLabel.textContent = entry.label + " \u25BE";
-      groupTriggerLabel = trigLabel;
+      let currentTriggerIcon: SVGSVGElement = andGateIcon();
+      const chevron = document.createElement("span");
+      chevron.textContent = " \u25BE";
       const trigHint = document.createElement("span");
       trigHint.className = "shortcut-hint";
       trigHint.textContent = String(shortcutIndex);
-      trigger.appendChild(trigLabel);
+      trigger.appendChild(currentTriggerIcon);
+      trigger.appendChild(chevron);
       trigger.appendChild(trigHint);
+      trigger.title = "Gates";
+      trigger.setAttribute("aria-label", "Gates");
       groupTrigger = trigger;
 
       trigger.addEventListener("click", (e) => {
@@ -119,7 +139,9 @@ export function createToolbar(
         if (wrapper.classList.contains("active")) {
           // Already a gate selected — deselect
           deactivateAll();
-          trigLabel.textContent = groupDefaultLabel + " \u25BE";
+          const resetIcon = andGateIcon();
+          trigger.replaceChild(resetIcon, currentTriggerIcon);
+          currentTriggerIcon = resetIcon;
           onToolSelect(null);
         } else if (isDropdownOpen()) {
           closeDropdown();
@@ -140,22 +162,23 @@ export function createToolbar(
       for (let j = 0; j < entry.items.length; j++) {
         const item = entry.items[j];
         const itemBtn = document.createElement("button");
-        const itemLabel = document.createElement("span");
-        itemLabel.textContent = item.label;
+        itemBtn.appendChild((toolIcons[item.id] ?? andGateIcon)());
         const itemHint = document.createElement("span");
         itemHint.className = "shortcut-hint";
         itemHint.textContent = String(j + 1);
-        itemBtn.appendChild(itemLabel);
         itemBtn.appendChild(itemHint);
         itemBtn.dataset.tool = item.id;
+        itemBtn.title = item.label;
+        itemBtn.setAttribute("aria-label", item.label);
 
         const itemId = item.id;
-        const itemLabelText = item.label;
         itemBtn.addEventListener("click", (e) => {
           e.stopPropagation();
           deactivateAll();
           wrapper.classList.add("active");
-          trigLabel.textContent = itemLabelText + " \u25BE";
+          const newIcon = (toolIcons[itemId] ?? andGateIcon)();
+          trigger.replaceChild(newIcon, currentTriggerIcon);
+          currentTriggerIcon = newIcon;
           onToolSelect(itemId);
         });
 
