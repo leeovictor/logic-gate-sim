@@ -107,7 +107,7 @@ function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext, 
     // When pendingWire is set: check for pin/junction/wire hits to complete, or add waypoint on empty canvas
     if (pinHit) {
       // Complete the wire at a pin
-      const toEndpoint = { type: "pin", componentId: pinHit.componentId, pinIndex: pinHit.pinIndex };
+      const toEndpoint = { type: "pin", componentId: pinHit.componentId, pinIndex: pinHit.pinIndex } as const;
       addWireSegment(state, state.pendingWire, toEndpoint, state.pendingWaypoints);
       clearPendingWire(state);
       ctx.reEvaluate();
@@ -118,7 +118,7 @@ function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext, 
         // Complete the wire at a wire intersection (junction)
         const junction = addJunction(state, wireHit.position);
         splitWireAtJunction(state, wireHit.wireId, junction.id);
-        const toEndpoint = { type: "junction", junctionId: junction.id };
+        const toEndpoint = { type: "junction", junctionId: junction.id } as const;
         addWireSegment(state, state.pendingWire, toEndpoint, state.pendingWaypoints);
         clearPendingWire(state);
         ctx.reEvaluate();
