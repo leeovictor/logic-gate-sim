@@ -74,28 +74,59 @@ npm run build
 
 ```
 src/
-  main.ts            # App orchestrator — canvas setup, event handlers, render loop
-  types.ts           # Type definitions: Point, ComponentType, ComponentDef, PlacedComponent, EditorState, Wire
-  state.ts           # State factory & mutations (addComponent, addWire, deleteComponent, etc.)
-  registry.ts        # Map<ComponentType, ComponentDef> — component registry
-  renderer.ts        # Canvas rendering (drawAll), hit-testing (hitTest, hitTestPin), getPinPosition()
-  simulation.ts      # Circuit evaluation — topological sort + signal propagation
-  handlers.ts        # Canvas event handlers (mouse, keyboard)
-  toolbar.ts         # HTML toolbar with component selection buttons
-  toolbar-icons.ts   # Toolbar SVG icon definitions
-  persistence.ts     # localStorage save/load functionality
-  sharing.ts         # Circuit export/import with compression
-  style.css          # Styles (reset, toolbar, canvas, buttons)
-  components/
-    and-gate.ts      # AND gate component definition
-    or-gate.ts       # OR gate component definition
-    not-gate.ts      # NOT gate component definition
-    switch.ts        # Switch (toggle input)
-    light.ts         # Light (output indicator)
-  __tests__/         # Vitest unit tests
+  main.ts                         # Orchestrator — canvas setup, event wiring, render loop
+  
+  core/                           # Foundation layer (no dependencies)
+    types.ts                      # Type unions & interfaces (ComponentType, ToolMode, EditorState, etc.)
+    registry.ts                   # Map<ComponentType, ComponentDef> — component definitions registry
+    simulation.ts                 # evaluateCircuit() — topological sort + signal propagation
+    components/
+      and-gate.ts                 # AND gate component definition
+      or-gate.ts                  # OR gate component definition
+      not-gate.ts                 # NOT gate component definition
+      switch.ts                   # Switch (toggle input)
+      light.ts                    # Light (output indicator)
+  
+  state/                          # Editor state & mutations (depends on core/)
+    editor-state.ts               # createEditorState() factory + helpers
+    mutations.ts                  # All state mutations (addComponent, addWire, selectComponent, etc.)
+    index.ts                      # Barrel export for clean imports
+  
+  storage/                        # Persistence & sharing (depends on core/)
+    persistence.ts                # saveCircuit(), loadCircuit() — localStorage + compression
+    sharing.ts                    # generateShareUrl(), loadFromUrl(), copyShareUrl()
+  
+  ui/                             # Rendering & interaction (depends on core/ + state/)
+    renderer.ts                   # drawAll(), getPinPosition(), getEndpointPosition()
+    hit-test.ts                   # hitTest(), hitTestPin(), hitTestWire(), hitTestJunction()
+    handlers.ts                   # Canvas event handlers (mouse, keyboard)
+    toolbar.ts                    # createToolbar() — HTML toolbar with tool buttons
+    toolbar-icons.ts              # SVG icon factories
+    toast.ts                       # showToast() — temporary notifications
+    style.css                      # Styles (reset, toolbar, canvas, buttons)
+  
+  __tests__/                      # Vitest unit tests (flat structure)
 ```
 
 ## Architecture
+
+### Modular Layers
+
+The architecture is organized into **4 independent layers** with clear dependency flow:
+
+```
+ui/  (rendering, handlers, toolbar)
+ ↓
+state/  (mutations)  +  storage/  (persistence, sharing)
+ ↓
+core/  (types, registry, simulation)
+```
+
+- **core/** — Foundation layer with no dependencies. Exports types, component registry, and circuit evaluation logic.
+- **state/** — Depends on core/. Manages all mutable editor state and state mutations.
+- **storage/** — Depends on core/. Handles localStorage persistence and URL-based circuit sharing.
+- **ui/** — Depends on core/ + state/. Renders components, handles user interactions, provides the toolbar.
+- **main.ts** — Orchestrator that imports all layers and runs the render loop.
 
 ### Core Design Principles
 
@@ -104,6 +135,7 @@ src/
 - **Mutable state** — Direct mutation of `EditorState` object (no immutability overhead)
 - **Continuous rendering** — `requestAnimationFrame` loop clears and redraws canvas every frame
 - **Topological sort** — Circuit evaluation order determined by Kahn's algorithm; cycles detected and handled
+- **Modular isolation** — Each layer has a single responsibility; no circular imports
 
 ### Signal Flow
 
@@ -152,8 +184,8 @@ Test files use [Vitest](https://vitest.dev/) and mock the Canvas 2D context with
 
 ### Adding a New Component
 
-1. **Define the type** in [src/types.ts](src/types.ts) — add to the `ComponentType` union
-2. **Create component definition** — new file [src/components/my-component.ts](src/components/)
+1. **Define the type** in [src/core/types.ts](src/core/types.ts) — add to the `ComponentType` union
+2. **Create component definition** — new file [src/core/components/my-component.ts](src/core/components/)
    ```typescript
    export const myComponent: ComponentDef = {
      type: 'my-component',
@@ -172,7 +204,7 @@ Test files use [Vitest](https://vitest.dev/) and mock the Canvas 2D context with
      }
    };
    ```
-3. **Register** in [src/registry.ts](src/registry.ts) — add to the component `Map`
+3. **Register** in [src/core/registry.ts](src/core/registry.ts) — add to the component `Map`
 4. **Test** — create [src/__tests__/my-component.test.ts](src/__tests__/)
 
 ### Code Style
