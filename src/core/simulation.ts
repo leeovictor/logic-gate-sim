@@ -154,6 +154,50 @@ export function resolveNetSignal(net: Net, state: EditorState): SignalValue {
   return firstValue;
 }
 
+/**
+ * Executes one iteration of evaluation: for each component, read inputs from nets,
+ * evaluate, write pinValues; then resolve net signals.
+ */
+function evaluateOneIteration(state: EditorState): void {
+  for (const comp of state.components) {
+    const def = getComponentDef(comp.type);
+    if (!def) continue;
+
+    // Get input values from nets
+    const inputPins = def.pins.filter((p) => p.direction === "input");
+    const inputValues: SignalValue[] = inputPins.map((_pin, pinIdx) => {
+      const absPinIndex = def.pins.indexOf(inputPins[pinIdx]);
+      const net = state.nets.find((n) =>
+        n.pinReferences.some(
+          (p) => p.componentId === comp.id && p.pinIndex === absPinIndex
+        )
+      );
+      return net?.signalValue ?? 0;
+    });
+
+    // Evaluate component
+    const outputValues = def.evaluate(inputValues, comp.state);
+
+    // Store output values in pinValues
+    const pinValues: SignalValue[] = new Array(def.pins.length).fill(0);
+    let inputIdx = 0;
+    let outputIdx = 0;
+    for (let p = 0; p < def.pins.length; p++) {
+      if (def.pins[p].direction === "input") {
+        pinValues[p] = inputValues[inputIdx++];
+      } else {
+        pinValues[p] = outputValues[outputIdx++] ?? 0;
+      }
+    }
+    comp.state.pinValues = pinValues;
+  }
+
+  // Resolve net signals
+  for (const net of state.nets) {
+    net.signalValue = resolveNetSignal(net, state);
+  }
+}
+
 export function evaluateCircuit(state: EditorState): void {
   if (!state.simulationEnabled) {
     clearAllPinValues(state);
@@ -174,44 +218,7 @@ export function evaluateCircuit(state: EditorState): void {
   for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
     const prevNetValues = new Map(state.nets.map((n) => [n.id, n.signalValue]));
 
-    // For each component, evaluate it
-    for (const comp of state.components) {
-      const def = getComponentDef(comp.type);
-      if (!def) continue;
-
-      // Get input values from nets
-      const inputPins = def.pins.filter((p) => p.direction === "input");
-      const inputValues: SignalValue[] = inputPins.map((_pin, pinIdx) => {
-        const absPinIndex = def.pins.indexOf(inputPins[pinIdx]);
-        const net = state.nets.find((n) =>
-          n.pinReferences.some(
-            (p) => p.componentId === comp.id && p.pinIndex === absPinIndex
-          )
-        );
-        return net?.signalValue ?? 0;
-      });
-
-      // Evaluate component
-      const outputValues = def.evaluate(inputValues, comp.state);
-
-      // Store output values in pinValues
-      const pinValues: SignalValue[] = new Array(def.pins.length).fill(0);
-      let inputIdx = 0;
-      let outputIdx = 0;
-      for (let p = 0; p < def.pins.length; p++) {
-        if (def.pins[p].direction === "input") {
-          pinValues[p] = inputValues[inputIdx++];
-        } else {
-          pinValues[p] = outputValues[outputIdx++] ?? 0;
-        }
-      }
-      comp.state.pinValues = pinValues;
-    }
-
-    // Resolve net signals
-    for (const net of state.nets) {
-      net.signalValue = resolveNetSignal(net, state);
-    }
+    evaluateOneIteration(state);
 
     // Check for convergence
     let converged = true;
@@ -235,6 +242,42 @@ export function evaluateCircuit(state: EditorState): void {
   if (didNotConverge) {
     clearAllPinValues(state);
   }
+}
+
+export function stepCircuit(state: EditorState): void {
+  if (!state.simulationEnabled) return;
+
+  // Build/rebuild nets if needed (first step or topology changed)
+  if (state.stepSimulation.stepCount === 0 || state.nets.length === 0) {
+    state.nets = buildNets(state);
+    // Initialize net signals to 0 on first step only
+    if (state.stepSimulation.stepCount === 0) {
+      for (const net of state.nets) {
+        net.signalValue = 0;
+      }
+    }
+  }
+
+  // Snapshot current net values for stability detection
+  const prevNetValues = new Map(
+    state.nets.map((n) => [n.id, n.signalValue])
+  );
+
+  // Execute one propagation iteration
+  evaluateOneIteration(state);
+
+  // Detect stability: compare current net values with previous
+  let stable = true;
+  for (const net of state.nets) {
+    if (prevNetValues.get(net.id) !== net.signalValue) {
+      stable = false;
+      break;
+    }
+  }
+
+  state.stepSimulation.previousNetValues = prevNetValues;
+  state.stepSimulation.stable = stable;
+  state.stepSimulation.stepCount++;
 }
 
 export function clearAllPinValues(state: EditorState): void {
