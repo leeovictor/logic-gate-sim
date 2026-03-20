@@ -204,6 +204,12 @@ export function evaluateCircuit(state: EditorState): void {
     return;
   }
 
+  // In step mode, only rebuild nets — propagation is user-controlled
+  if (state.simulationMode === "step") {
+    state.nets = buildNets(state);
+    return;
+  }
+
   // Build nets
   state.nets = buildNets(state);
 
