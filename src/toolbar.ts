@@ -1,21 +1,42 @@
-import type { ComponentType } from "./types";
+import type { ToolMode } from "./types";
+
+interface ToolDef {
+  id: ToolMode;
+  label: string;
+}
+
+const tools: ToolDef[] = [
+  { id: "select", label: "Select" },
+  { id: "and-gate", label: "AND Gate" },
+];
 
 export function createToolbar(
-  onToolSelect: (tool: ComponentType | null) => void,
+  onToolSelect: (tool: ToolMode | null) => void,
 ): HTMLDivElement {
   const toolbar = document.createElement("div");
   toolbar.className = "toolbar";
 
-  const btn = document.createElement("button");
-  btn.textContent = "AND Gate";
-  btn.dataset.tool = "and-gate";
+  const buttons: HTMLButtonElement[] = [];
 
-  btn.addEventListener("click", () => {
-    const isActive = btn.classList.contains("active");
-    btn.classList.toggle("active", !isActive);
-    onToolSelect(isActive ? null : "and-gate");
-  });
+  for (const tool of tools) {
+    const btn = document.createElement("button");
+    btn.textContent = tool.label;
+    btn.dataset.tool = tool.id;
 
-  toolbar.appendChild(btn);
+    btn.addEventListener("click", () => {
+      const isActive = btn.classList.contains("active");
+      for (const b of buttons) b.classList.remove("active");
+      if (!isActive) {
+        btn.classList.add("active");
+        onToolSelect(tool.id);
+      } else {
+        onToolSelect(null);
+      }
+    });
+
+    buttons.push(btn);
+    toolbar.appendChild(btn);
+  }
+
   return toolbar;
 }

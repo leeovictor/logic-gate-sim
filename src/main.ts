@@ -1,12 +1,20 @@
 import "./style.css";
-import { createEditorState, addComponent, setSelectedTool } from "./state";
+import {
+  createEditorState,
+  addComponent,
+  setSelectedTool,
+  selectComponent,
+  toggleComponentSelection,
+  clearSelection,
+} from "./state";
 import { createToolbar } from "./toolbar";
-import { drawAll } from "./renderer";
+import { drawAll, hitTest } from "./renderer";
 
 const state = createEditorState();
 
 const toolbar = createToolbar((tool) => {
   setSelectedTool(state, tool);
+  clearSelection(state);
 });
 document.body.prepend(toolbar);
 
@@ -24,8 +32,22 @@ window.addEventListener("resize", resize);
 resize();
 
 canvas.addEventListener("click", (e) => {
-  if (state.selectedTool) {
-    addComponent(state, state.selectedTool, { x: e.offsetX, y: e.offsetY });
+  const point = { x: e.offsetX, y: e.offsetY };
+
+  if (state.selectedTool === "select") {
+    const hit = hitTest(state, point);
+    if (hit) {
+      if (e.ctrlKey) {
+        toggleComponentSelection(state, hit.id);
+      } else {
+        selectComponent(state, hit.id);
+      }
+    } else if (!e.ctrlKey) {
+      clearSelection(state);
+    }
+  } else if (state.selectedTool) {
+    addComponent(state, state.selectedTool, point);
+    clearSelection(state);
   }
 });
 

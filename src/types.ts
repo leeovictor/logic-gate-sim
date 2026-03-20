@@ -5,6 +5,8 @@ export interface Point {
 
 export type ComponentType = "and-gate";
 
+export type ToolMode = "select" | ComponentType;
+
 export interface ComponentDef {
   type: ComponentType;
   label: string;
@@ -20,7 +22,8 @@ export interface PlacedComponent {
 }
 
 export interface EditorState {
-  selectedTool: ComponentType | null;
+  selectedTool: ToolMode | null;
   components: PlacedComponent[];
   cursorPosition: Point | null;
+  selectedComponentIds: Set<string>;
 }
