@@ -42,10 +42,10 @@ export function createToolbar(
     toolbar.appendChild(btn);
   }
 
-  // Spacer to push sim toggle to the right
-  const spacer = document.createElement("div");
-  spacer.style.marginLeft = "auto";
-  toolbar.appendChild(spacer);
+  // Separator before sim toggle
+  const separator = document.createElement("div");
+  separator.className = "separator";
+  toolbar.appendChild(separator);
 
   // Simulation toggle
   const simBtn = document.createElement("button");

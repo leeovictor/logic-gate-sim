@@ -11,42 +11,56 @@ body {
 canvas {
   display: block;
   position: fixed;
-  top: 48px;
+  top: 0;
   left: 0;
 }
 
 .toolbar {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 48px;
-  background: #1e1e1e;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 30, 30, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
-  padding: 0 12px;
-  gap: 8px;
+  padding: 6px 12px;
+  gap: 6px;
   z-index: 10;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 }
 
 .toolbar button {
-  padding: 6px 16px;
-  border: 1px solid #555;
-  border-radius: 4px;
-  background: #2d2d2d;
-  color: #ccc;
-  font-size: 14px;
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #bbb;
+  font-size: 13px;
   cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
 }
 
 .toolbar button:hover {
-  background: #3a3a3a;
+  background: rgba(255, 255, 255, 0.1);
+  color: #eee;
 }
 
 .toolbar button.active {
   background: #264f78;
   border-color: #3a8fd6;
   color: #fff;
+}
+
+.toolbar .separator {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 4px;
 }
 
 .toolbar .sim-toggle.active {

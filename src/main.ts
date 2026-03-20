@@ -36,11 +36,9 @@ document.body.prepend(toolbar);
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
 
-const toolbarHeight = toolbar.offsetHeight;
-
 function resize() {
   canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight - toolbarHeight;
+  canvas.height = window.innerHeight;
 }
 
 window.addEventListener("resize", resize);
