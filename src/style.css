@@ -78,3 +78,41 @@ canvas {
   border-color: #22c55e;
   color: #fff;
 }
+
+/* Gates dropdown group */
+.tool-group {
+  position: relative;
+}
+
+.tool-group-trigger {
+  position: relative;
+}
+
+.tool-group.active .tool-group-trigger {
+  background: #264f78;
+  border-color: #3a8fd6;
+  color: #fff;
+}
+
+.tool-group .dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  background: rgba(30, 30, 30, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  z-index: 20;
+  min-width: 100px;
+}
+
+.tool-group.open .dropdown {
+  display: flex;
+}
