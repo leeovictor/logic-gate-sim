@@ -29,7 +29,7 @@ export function drawAll(
 ): void {
   ctx.clearRect(0, 0, width, height);
   drawComponents(ctx, state);
-  drawWires(ctx, state);
+  drawWireSegments(ctx, state);
   drawPinIndicators(ctx, state);
   drawPendingWire(ctx, state);
   drawSelectionBox(ctx, state);
@@ -73,7 +73,7 @@ function getWireSignal(state: EditorState, wireId: string): 0 | 1 | 'E' {
   return net.signalValue;
 }
 
-function drawWires(ctx: CanvasRenderingContext2D, state: EditorState): void {
+function drawWireSegments(ctx: CanvasRenderingContext2D, state: EditorState): void {
   for (const wire of state.wireSegments) {
     const from = getEndpointPosition(state, wire.from);
     const to = getEndpointPosition(state, wire.to);
@@ -87,7 +87,7 @@ function drawWires(ctx: CanvasRenderingContext2D, state: EditorState): void {
     } else if (state.simulationEnabled) {
       const signal = getWireSignal(state, wire.id);
       if (signal === 'E') {
-        ctx.strokeStyle = "#f87171"; // Red for error
+        ctx.strokeStyle = "#ef4444"; // Red for error
         ctx.lineWidth = 2.5;
       } else if (signal === 1) {
         ctx.strokeStyle = "#22c55e"; // Green for on
@@ -102,6 +102,26 @@ function drawWires(ctx: CanvasRenderingContext2D, state: EditorState): void {
     }
     drawBezierWire(ctx, from, to);
     ctx.restore();
+
+    // Draw free endpoints as small open circles
+    if (wire.from.type === "point") {
+      ctx.save();
+      ctx.strokeStyle = isSelected ? "#3b82f6" : "#1a1a1a";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(from.x, from.y, 4, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+    if (wire.to.type === "point") {
+      ctx.save();
+      ctx.strokeStyle = isSelected ? "#3b82f6" : "#1a1a1a";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(to.x, to.y, 4, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 
   // Draw junctions as filled dots
@@ -133,26 +153,31 @@ function drawPinIndicators(ctx: CanvasRenderingContext2D, state: EditorState): v
         state.hoveredPin !== null &&
         state.hoveredPin.componentId === comp.id &&
         state.hoveredPin.pinIndex === i;
+      
+      // Color coding: output = green, input = blue
+      const pinColor = pin.direction === "output" ? "#22c55e" : "#3b82f6";
+      const hoverColor = pin.direction === "output" ? "rgba(34, 197, 94, 0.15)" : "rgba(59, 130, 246, 0.15)";
+      
       ctx.save();
       if (isHovered && !isPending) {
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, 12, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(239, 68, 68, 0.15)";
+        ctx.fillStyle = hoverColor;
         ctx.fill();
       }
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
       if (isPending) {
-        ctx.fillStyle = "#ef4444";
+        ctx.fillStyle = pinColor;
         ctx.fill();
       } else if (isHovered) {
-        ctx.fillStyle = "#ef4444";
+        ctx.fillStyle = pinColor;
         ctx.fill();
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 2;
         ctx.stroke();
       } else {
-        ctx.strokeStyle = "#ef4444";
+        ctx.strokeStyle = pinColor;
         ctx.lineWidth = 2;
         ctx.stroke();
       }
