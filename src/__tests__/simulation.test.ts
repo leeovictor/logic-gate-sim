@@ -17,11 +17,11 @@ function basicAndCircuit() {
   const light = addComponent(state, "light", { x: 250, y: 50 });
 
   // sw1 output(pin 0) → gate input 0 (pin 0)
-  addWire(state, { componentId: sw1.id, pinIndex: 0 }, { componentId: gate.id, pinIndex: 0 });
+  addWire(state, { type: "pin", componentId: sw1.id, pinIndex: 0 }, { type: "pin", componentId: gate.id, pinIndex: 0 });
   // sw2 output(pin 0) → gate input 1 (pin 1)
-  addWire(state, { componentId: sw2.id, pinIndex: 0 }, { componentId: gate.id, pinIndex: 1 });
+  addWire(state, { type: "pin", componentId: sw2.id, pinIndex: 0 }, { type: "pin", componentId: gate.id, pinIndex: 1 });
   // gate output(pin 2) → light input (pin 0)
-  addWire(state, { componentId: gate.id, pinIndex: 2 }, { componentId: light.id, pinIndex: 0 });
+  addWire(state, { type: "pin", componentId: gate.id, pinIndex: 2 }, { type: "pin", componentId: light.id, pinIndex: 0 });
 
   return { state, sw1, sw2, gate, light };
 }
@@ -72,7 +72,7 @@ describe("evaluateCircuit", () => {
     const gate = addComponent(state, "and-gate", { x: 100, y: 0 });
 
     // Only connect sw to input 0, leave input 1 disconnected
-    addWire(state, { componentId: sw.id, pinIndex: 0 }, { componentId: gate.id, pinIndex: 0 });
+    addWire(state, { type: "pin", componentId: sw.id, pinIndex: 0 }, { type: "pin", componentId: gate.id, pinIndex: 0 });
     state.simulationEnabled = true;
     sw.state.value = 1;
     evaluateCircuit(state);
@@ -93,13 +93,13 @@ describe("evaluateCircuit", () => {
     const light = addComponent(state, "light", { x: 300, y: 100 });
 
     // sw1 → gate1 input 0, sw2 → gate1 input 1
-    addWire(state, { componentId: sw1.id, pinIndex: 0 }, { componentId: gate1.id, pinIndex: 0 });
-    addWire(state, { componentId: sw2.id, pinIndex: 0 }, { componentId: gate1.id, pinIndex: 1 });
+    addWire(state, { type: "pin", componentId: sw1.id, pinIndex: 0 }, { type: "pin", componentId: gate1.id, pinIndex: 0 });
+    addWire(state, { type: "pin", componentId: sw2.id, pinIndex: 0 }, { type: "pin", componentId: gate1.id, pinIndex: 1 });
     // gate1 output → gate2 input 0, sw3 → gate2 input 1
-    addWire(state, { componentId: gate1.id, pinIndex: 2 }, { componentId: gate2.id, pinIndex: 0 });
-    addWire(state, { componentId: sw3.id, pinIndex: 0 }, { componentId: gate2.id, pinIndex: 1 });
+    addWire(state, { type: "pin", componentId: gate1.id, pinIndex: 2 }, { type: "pin", componentId: gate2.id, pinIndex: 0 });
+    addWire(state, { type: "pin", componentId: sw3.id, pinIndex: 0 }, { type: "pin", componentId: gate2.id, pinIndex: 1 });
     // gate2 output → light
-    addWire(state, { componentId: gate2.id, pinIndex: 2 }, { componentId: light.id, pinIndex: 0 });
+    addWire(state, { type: "pin", componentId: gate2.id, pinIndex: 2 }, { type: "pin", componentId: light.id, pinIndex: 0 });
 
     state.simulationEnabled = true;
 
@@ -140,8 +140,8 @@ describe("evaluateCircuit", () => {
     const gate2 = addComponent(state, "and-gate", { x: 200, y: 0 });
 
     // Create cycle: gate1 output → gate2 input 0, gate2 output → gate1 input 0
-    addWire(state, { componentId: gate1.id, pinIndex: 2 }, { componentId: gate2.id, pinIndex: 0 });
-    addWire(state, { componentId: gate2.id, pinIndex: 2 }, { componentId: gate1.id, pinIndex: 0 });
+    addWire(state, { type: "pin", componentId: gate1.id, pinIndex: 2 }, { type: "pin", componentId: gate2.id, pinIndex: 0 });
+    addWire(state, { type: "pin", componentId: gate2.id, pinIndex: 2 }, { type: "pin", componentId: gate1.id, pinIndex: 0 });
 
     state.simulationEnabled = true;
     evaluateCircuit(state);

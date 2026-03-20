@@ -24,29 +24,31 @@ describe("addWire", () => {
     const { state, a, b } = stateWithTwoGates();
     const wire = addWire(
       state,
-      { componentId: a.id, pinIndex: 2 }, // output
-      { componentId: b.id, pinIndex: 0 }, // input
+      { type: "pin", componentId: a.id, pinIndex: 2 }, // output
+      { type: "pin", componentId: b.id, pinIndex: 0 }, // input
     );
     expect(wire).not.toBeNull();
     expect(wire!.id).toBeDefined();
-    expect(wire!.fromComponentId).toBe(a.id);
-    expect(wire!.fromPinIndex).toBe(2);
-    expect(wire!.toComponentId).toBe(b.id);
-    expect(wire!.toPinIndex).toBe(0);
-    expect(state.wires).toHaveLength(1);
+    expect(wire!.from.type).toBe("pin");
+    expect((wire!.from as any).componentId).toBe(a.id);
+    expect((wire!.from as any).pinIndex).toBe(2);
+    expect(wire!.to.type).toBe("pin");
+    expect((wire!.to as any).componentId).toBe(b.id);
+    expect((wire!.to as any).pinIndex).toBe(0);
+    expect(state.wireSegments).toHaveLength(1);
   });
 
   it("gera ids únicos para wires diferentes", () => {
     const { state, a, b } = stateWithTwoGates();
     const w1 = addWire(
       state,
-      { componentId: a.id, pinIndex: 2 },
-      { componentId: b.id, pinIndex: 0 },
+      { type: "pin", componentId: a.id, pinIndex: 2 },
+      { type: "pin", componentId: b.id, pinIndex: 0 },
     );
     const w2 = addWire(
       state,
-      { componentId: a.id, pinIndex: 2 },
-      { componentId: b.id, pinIndex: 1 },
+      { type: "pin", componentId: a.id, pinIndex: 2 },
+      { type: "pin", componentId: b.id, pinIndex: 1 },
     );
     expect(w1!.id).not.toBe(w2!.id);
   });
@@ -55,19 +57,19 @@ describe("addWire", () => {
     const { state, a } = stateWithTwoGates();
     const wire = addWire(
       state,
-      { componentId: a.id, pinIndex: 2 },
-      { componentId: a.id, pinIndex: 0 },
+      { type: "pin", componentId: a.id, pinIndex: 2 },
+      { type: "pin", componentId: a.id, pinIndex: 0 },
     );
     expect(wire).toBeNull();
-    expect(state.wires).toHaveLength(0);
+    expect(state.wireSegments).toHaveLength(0);
   });
 
   it("rejeita wire entre dois outputs", () => {
     const { state, a, b } = stateWithTwoGates();
     const wire = addWire(
       state,
-      { componentId: a.id, pinIndex: 2 }, // output
-      { componentId: b.id, pinIndex: 2 }, // output
+      { type: "pin", componentId: a.id, pinIndex: 2 }, // output
+      { type: "pin", componentId: b.id, pinIndex: 2 }, // output
     );
     expect(wire).toBeNull();
   });
@@ -76,8 +78,8 @@ describe("addWire", () => {
     const { state, a, b } = stateWithTwoGates();
     const wire = addWire(
       state,
-      { componentId: a.id, pinIndex: 0 }, // input
-      { componentId: b.id, pinIndex: 0 }, // input
+      { type: "pin", componentId: a.id, pinIndex: 0 }, // input
+      { type: "pin", componentId: b.id, pinIndex: 0 }, // input
     );
     expect(wire).toBeNull();
   });
@@ -86,16 +88,16 @@ describe("addWire", () => {
     const { state, a, b } = stateWithTwoGates();
     addWire(
       state,
-      { componentId: a.id, pinIndex: 2 },
-      { componentId: b.id, pinIndex: 0 },
+      { type: "pin", componentId: a.id, pinIndex: 2 },
+      { type: "pin", componentId: b.id, pinIndex: 0 },
     );
     const dup = addWire(
       state,
-      { componentId: a.id, pinIndex: 2 },
-      { componentId: b.id, pinIndex: 0 },
+      { type: "pin", componentId: a.id, pinIndex: 2 },
+      { type: "pin", componentId: b.id, pinIndex: 0 },
     );
     expect(dup).toBeNull();
-    expect(state.wires).toHaveLength(1);
+    expect(state.wireSegments).toHaveLength(1);
   });
 });
 
@@ -105,18 +107,18 @@ describe("removeWiresForComponent", () => {
     const c = addComponent(state, "and-gate", { x: 400, y: 0 });
     addWire(
       state,
-      { componentId: a.id, pinIndex: 2 },
-      { componentId: b.id, pinIndex: 0 },
+      { type: "pin", componentId: a.id, pinIndex: 2 },
+      { type: "pin", componentId: b.id, pinIndex: 0 },
     );
     addWire(
       state,
-      { componentId: b.id, pinIndex: 2 },
-      { componentId: c.id, pinIndex: 0 },
+      { type: "pin", componentId: b.id, pinIndex: 2 },
+      { type: "pin", componentId: c.id, pinIndex: 0 },
     );
-    expect(state.wires).toHaveLength(2);
+    expect(state.wireSegments).toHaveLength(2);
 
     removeWiresForComponent(state, b.id);
-    expect(state.wires).toHaveLength(0);
+    expect(state.wireSegments).toHaveLength(0);
   });
 
   it("não remove wires de outros componentes", () => {
@@ -124,18 +126,20 @@ describe("removeWiresForComponent", () => {
     const c = addComponent(state, "and-gate", { x: 400, y: 0 });
     addWire(
       state,
-      { componentId: a.id, pinIndex: 2 },
-      { componentId: b.id, pinIndex: 0 },
+      { type: "pin", componentId: a.id, pinIndex: 2 },
+      { type: "pin", componentId: b.id, pinIndex: 0 },
     );
     addWire(
       state,
-      { componentId: a.id, pinIndex: 2 },
-      { componentId: c.id, pinIndex: 0 },
+      { type: "pin", componentId: a.id, pinIndex: 2 },
+      { type: "pin", componentId: c.id, pinIndex: 0 },
     );
 
     removeWiresForComponent(state, b.id);
-    expect(state.wires).toHaveLength(1);
-    expect(state.wires[0].toComponentId).toBe(c.id);
+    expect(state.wireSegments).toHaveLength(1);
+    const wire = state.wireSegments[0];
+    expect(wire.to.type).toBe("pin");
+    expect((wire.to as any).componentId).toBe(c.id);
   });
 });
 
@@ -144,16 +148,16 @@ describe("deleteSelected com wires", () => {
     const { state, a, b } = stateWithTwoGates();
     addWire(
       state,
-      { componentId: a.id, pinIndex: 2 },
-      { componentId: b.id, pinIndex: 0 },
+      { type: "pin", componentId: a.id, pinIndex: 2 },
+      { type: "pin", componentId: b.id, pinIndex: 0 },
     );
-    expect(state.wires).toHaveLength(1);
+    expect(state.wireSegments).toHaveLength(1);
 
     selectComponent(state, a.id);
     deleteSelected(state);
 
     expect(state.components).toHaveLength(1);
-    expect(state.wires).toHaveLength(0);
+    expect(state.wireSegments).toHaveLength(0);
   });
 });
 
@@ -161,7 +165,7 @@ describe("pendingWire", () => {
   it("setPendingWire define o wire pendente", () => {
     const state = createEditorState();
     setPendingWire(state, "comp-0", 2);
-    expect(state.pendingWire).toEqual({ componentId: "comp-0", pinIndex: 2 });
+    expect(state.pendingWire).toEqual({ type: "pin", componentId: "comp-0", pinIndex: 2 });
   });
 
   it("clearPendingWire limpa o wire pendente", () => {

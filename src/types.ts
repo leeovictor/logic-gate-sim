@@ -27,6 +27,38 @@ export interface ComponentDef {
   evaluate(inputs: number[], state: Record<string, unknown>): number[];
 }
 
+/** Signal value: 0 (off), 1 (on), or 'E' (error/conflict) */
+export type SignalValue = 0 | 1 | "E";
+
+/** Represents one end of a wire segment */
+export type WireEndpoint =
+  | { type: "pin"; componentId: string; pinIndex: number }
+  | { type: "point"; x: number; y: number }
+  | { type: "junction"; junctionId: string };
+
+/** A wire segment connecting two endpoints */
+export interface WireSegment {
+  id: string;
+  from: WireEndpoint;
+  to: WireEndpoint;
+}
+
+/** A junction where multiple wire segments meet */
+export interface WireJunction {
+  id: string;
+  position: Point;
+}
+
+/** A net is a group of connected wire segments and pins sharing the same signal */
+export interface Net {
+  id: string;
+  pinReferences: { componentId: string; pinIndex: number }[];
+  wireSegmentIds: string[];
+  junctionIds: string[];
+  signalValue: SignalValue;
+}
+
+/** Legacy Wire type for backward compatibility */
 export interface Wire {
   id: string;
   fromComponentId: string;
@@ -35,10 +67,11 @@ export interface Wire {
   toPinIndex: number;
 }
 
-export interface PendingWire {
-  componentId: string;
-  pinIndex: number;
-}
+/** Represents an ongoing wire being drawn */
+export type PendingWire =
+  | { type: "pin"; componentId: string; pinIndex: number }
+  | { type: "point"; x: number; y: number }
+  | { type: "junction"; junctionId: string };
 
 export interface HoveredPin {
   componentId: string;
@@ -68,13 +101,16 @@ export interface EditorState {
   components: PlacedComponent[];
   cursorPosition: Point | null;
   selectedComponentIds: Set<string>;
-  wires: Wire[];
+  wireSegments: WireSegment[];
+  junctions: WireJunction[];
   pendingWire: PendingWire | null;
   hoveredPin: HoveredPin | null;
   dragging: DragState | null;
   selectionBox: SelectionBox | null;
   simulationEnabled: boolean;
   events: EventTarget;
+  nets: Net[];
   _nextId: number;
   _nextWireId: number;
+  _nextJunctionId: number;
 }

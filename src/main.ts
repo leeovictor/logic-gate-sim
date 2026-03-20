@@ -18,9 +18,11 @@ const state = createEditorState();
 const loaded = loadCircuit();
 if (loaded) {
   state.components = loaded.components;
-  state.wires = loaded.wires;
+  state.wireSegments = loaded.wireSegments;
+  state.junctions = loaded.junctions;
   state._nextId = loaded._nextId;
   state._nextWireId = loaded._nextWireId;
+  state._nextJunctionId = loaded._nextJunctionId;
 }
 
 function reEvaluate() {

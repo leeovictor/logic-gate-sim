@@ -67,7 +67,8 @@ function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext):
       }
     } else {
       if (pin.direction === "input") {
-        addWire(state, state.pendingWire, hit);
+        const hitWireEndpoint = { type: "pin" as const, componentId: hit.componentId, pinIndex: hit.pinIndex };
+        addWire(state, state.pendingWire, hitWireEndpoint);
         clearPendingWire(state);
         ctx.reEvaluate();
         ctx.save();

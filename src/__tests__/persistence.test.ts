@@ -25,8 +25,8 @@ describe("saveCircuit / loadCircuit", () => {
     addComponent(state, "switch", { x: 10, y: 20 });
     addWire(
       state,
-      { componentId: "comp-1", pinIndex: 0 },
-      { componentId: "comp-0", pinIndex: 0 },
+      { type: "pin", componentId: "comp-1", pinIndex: 0 },
+      { type: "pin", componentId: "comp-0", pinIndex: 0 },
     );
 
     saveCircuit(state);
@@ -36,9 +36,9 @@ describe("saveCircuit / loadCircuit", () => {
     expect(loaded!.components).toHaveLength(2);
     expect(loaded!.components[0].type).toBe("and-gate");
     expect(loaded!.components[0].position).toEqual({ x: 100, y: 200 });
-    expect(loaded!.wires).toHaveLength(1);
-    expect(loaded!.wires[0].fromComponentId).toBe("comp-1");
-    expect(loaded!.wires[0].toComponentId).toBe("comp-0");
+    expect(loaded!.wireSegments).toHaveLength(1);
+    expect((loaded!.wireSegments[0].from as any).componentId).toBe("comp-1");
+    expect((loaded!.wireSegments[0].to as any).componentId).toBe("comp-0");
   });
 
   it("preserves ID counters", () => {
@@ -73,9 +73,11 @@ describe("saveCircuit / loadCircuit", () => {
 
     expect(loaded).not.toBeNull();
     expect(loaded!.components).toEqual([]);
-    expect(loaded!.wires).toEqual([]);
+    expect(loaded!.wireSegments).toEqual([]);
+    expect(loaded!.junctions).toEqual([]);
     expect(loaded!._nextId).toBe(0);
     expect(loaded!._nextWireId).toBe(0);
+    expect(loaded!._nextJunctionId).toBe(0);
   });
 
   it("returns null when localStorage is empty", () => {

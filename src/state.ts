@@ -1,4 +1,4 @@
-import type { EditorState, ComponentType, ToolMode, Point, PlacedComponent, Wire, PendingWire } from "./types";
+import type { EditorState, ComponentType, ToolMode, Point, PlacedComponent, WireSegment, WireJunction, PendingWire } from "./types";
 import { getComponentDef } from "./registry";
 
 export function createEditorState(): EditorState {
@@ -7,15 +7,18 @@ export function createEditorState(): EditorState {
     components: [],
     cursorPosition: null,
     selectedComponentIds: new Set(),
-    wires: [],
+    wireSegments: [],
+    junctions: [],
     pendingWire: null,
     hoveredPin: null,
     dragging: null,
     selectionBox: null,
     simulationEnabled: false,
     events: new EventTarget(),
+    nets: [],
     _nextId: 0,
     _nextWireId: 0,
+    _nextJunctionId: 0,
   };
 }
 
@@ -75,7 +78,10 @@ export function addWire(
   state: EditorState,
   from: PendingWire,
   to: PendingWire,
-): Wire | null {
+): WireSegment | null {
+  // Both must be pin endpoints for validation in Phase 1
+  if (from.type !== "pin" || to.type !== "pin") return null;
+
   // Cannot connect a component to itself
   if (from.componentId === to.componentId) return null;
 
@@ -94,35 +100,46 @@ export function addWire(
   // from must be output, to must be input
   if (fromPin.direction !== "output" || toPin.direction !== "input") return null;
 
-  // No duplicate wires
-  const isDuplicate = state.wires.some(
+  // No duplicate wire segments between these pins
+  const isDuplicate = state.wireSegments.some(
     (w) =>
-      w.fromComponentId === from.componentId &&
-      w.fromPinIndex === from.pinIndex &&
-      w.toComponentId === to.componentId &&
-      w.toPinIndex === to.pinIndex,
+      w.from.type === "pin" &&
+      w.to.type === "pin" &&
+      w.from.componentId === from.componentId &&
+      w.from.pinIndex === from.pinIndex &&
+      w.to.componentId === to.componentId &&
+      w.to.pinIndex === to.pinIndex,
   );
   if (isDuplicate) return null;
 
-  const wire: Wire = {
+  const wireSegment: WireSegment = {
     id: `wire-${state._nextWireId++}`,
-    fromComponentId: from.componentId,
-    fromPinIndex: from.pinIndex,
-    toComponentId: to.componentId,
-    toPinIndex: to.pinIndex,
+    from: {
+      type: "pin",
+      componentId: from.componentId,
+      pinIndex: from.pinIndex,
+    },
+    to: {
+      type: "pin",
+      componentId: to.componentId,
+      pinIndex: to.pinIndex,
+    },
   };
-  state.wires.push(wire);
-  return wire;
+  state.wireSegments.push(wireSegment);
+  return wireSegment;
 }
 
 export function removeWiresForComponent(state: EditorState, componentId: string): void {
-  state.wires = state.wires.filter(
-    (w) => w.fromComponentId !== componentId && w.toComponentId !== componentId,
-  );
+  // Remove wire segments connected to this component
+  state.wireSegments = state.wireSegments.filter((w) => {
+    const fromConnected = w.from.type === "pin" && w.from.componentId === componentId;
+    const toConnected = w.to.type === "pin" && w.to.componentId === componentId;
+    return !fromConnected && !toConnected;
+  });
 }
 
 export function setPendingWire(state: EditorState, componentId: string, pinIndex: number): void {
-  state.pendingWire = { componentId, pinIndex };
+  state.pendingWire = { type: "pin", componentId, pinIndex };
 }
 
 export function clearPendingWire(state: EditorState): void {

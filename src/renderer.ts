@@ -59,22 +59,25 @@ function drawComponents(ctx: CanvasRenderingContext2D, state: EditorState): void
 }
 
 function drawWires(ctx: CanvasRenderingContext2D, state: EditorState): void {
-  for (const wire of state.wires) {
-    const fromComp = state.components.find((c) => c.id === wire.fromComponentId);
-    const toComp = state.components.find((c) => c.id === wire.toComponentId);
+  for (const wire of state.wireSegments) {
+    // Only draw wire segments that connect two pins (not free points or junctions)
+    if (wire.from.type !== "pin" || wire.to.type !== "pin") continue;
+
+    const fromComp = state.components.find((c) => c.id === wire.from.componentId);
+    const toComp = state.components.find((c) => c.id === wire.to.componentId);
     if (!fromComp || !toComp) continue;
     const fromDef = getComponentDef(fromComp.type);
     const toDef = getComponentDef(toComp.type);
     if (!fromDef || !toDef) continue;
-    const fromPin = fromDef.pins[wire.fromPinIndex];
-    const toPin = toDef.pins[wire.toPinIndex];
+    const fromPin = fromDef.pins[wire.from.pinIndex];
+    const toPin = toDef.pins[wire.to.pinIndex];
     if (!fromPin || !toPin) continue;
     const from = getPinPosition(fromComp, fromPin);
     const to = getPinPosition(toComp, toPin);
     ctx.save();
     if (state.simulationEnabled) {
       const pinValues = fromComp.state.pinValues as number[] | undefined;
-      const signal = pinValues?.[wire.fromPinIndex] ?? 0;
+      const signal = pinValues?.[wire.from.pinIndex] ?? 0;
       ctx.strokeStyle = signal ? "#22c55e" : "#6b7280";
       ctx.lineWidth = signal ? 2.5 : 2;
     } else {
@@ -100,6 +103,7 @@ function drawPinIndicators(ctx: CanvasRenderingContext2D, state: EditorState): v
       const pos = getPinPosition(comp, pin);
       const isPending =
         state.pendingWire !== null &&
+        state.pendingWire.type === "pin" &&
         state.pendingWire.componentId === comp.id &&
         state.pendingWire.pinIndex === i;
       const isHovered =
@@ -136,6 +140,8 @@ function drawPinIndicators(ctx: CanvasRenderingContext2D, state: EditorState): v
 
 function drawPendingWire(ctx: CanvasRenderingContext2D, state: EditorState): void {
   if (!state.pendingWire || !state.cursorPosition) return;
+  // Only support pin-based pending wires for Phase 1
+  if (state.pendingWire.type !== "pin") return;
   const comp = state.components.find((c) => c.id === state.pendingWire!.componentId);
   if (!comp) return;
   const def = getComponentDef(comp.type);
