@@ -9,6 +9,7 @@ export function createEditorState(): EditorState {
     selectedComponentIds: new Set(),
     wires: [],
     pendingWire: null,
+    hoveredPin: null,
     dragging: null,
     simulationEnabled: false,
     _nextId: 0,

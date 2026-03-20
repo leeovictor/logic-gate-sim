@@ -40,6 +40,11 @@ export interface PendingWire {
   pinIndex: number;
 }
 
+export interface HoveredPin {
+  componentId: string;
+  pinIndex: number;
+}
+
 export interface PlacedComponent {
   id: string;
   type: ComponentType;
@@ -59,6 +64,7 @@ export interface EditorState {
   selectedComponentIds: Set<string>;
   wires: Wire[];
   pendingWire: PendingWire | null;
+  hoveredPin: HoveredPin | null;
   dragging: DragState | null;
   simulationEnabled: boolean;
   _nextId: number;

@@ -100,12 +100,28 @@ function drawPinIndicators(ctx: CanvasRenderingContext2D, state: EditorState): v
         state.pendingWire !== null &&
         state.pendingWire.componentId === comp.id &&
         state.pendingWire.pinIndex === i;
+      const isHovered =
+        state.hoveredPin !== null &&
+        state.hoveredPin.componentId === comp.id &&
+        state.hoveredPin.pinIndex === i;
       ctx.save();
+      if (isHovered && !isPending) {
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, 12, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(239, 68, 68, 0.15)";
+        ctx.fill();
+      }
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
       if (isPending) {
         ctx.fillStyle = "#ef4444";
         ctx.fill();
+      } else if (isHovered) {
+        ctx.fillStyle = "#ef4444";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
       } else {
         ctx.strokeStyle = "#ef4444";
         ctx.lineWidth = 2;
@@ -153,7 +169,7 @@ export function getPinPosition(comp: PlacedComponent, pinDef: PinDef): Point {
 export function hitTestPin(
   state: EditorState,
   point: Point,
-  radius: number = 10,
+  radius: number = 20,
 ): { componentId: string; pinIndex: number } | null {
   // Iterate in reverse for z-order (last added = on top)
   for (let i = state.components.length - 1; i >= 0; i--) {

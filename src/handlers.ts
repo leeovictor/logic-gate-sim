@@ -14,6 +14,7 @@ import {
 } from "./state";
 import { hitTest, hitTestPin } from "./renderer";
 import { getComponentDef } from "./registry";
+import type { HoveredPin } from "./types";
 
 export interface HandlerContext {
   reEvaluate(): void;
@@ -122,6 +123,13 @@ export function handleCanvasMouseDown(state: EditorState, e: MouseEvent): void {
 export function handleCanvasMouseMove(state: EditorState, e: MouseEvent): void {
   const point: Point = { x: e.offsetX, y: e.offsetY };
   state.cursorPosition = point;
+
+  if (state.selectedTool === "wire") {
+    const hit = hitTestPin(state, point);
+    state.hoveredPin = hit as HoveredPin | null;
+  } else {
+    state.hoveredPin = null;
+  }
 
   if (state.dragging && mouseDownPoint) {
     const dx = point.x - mouseDownPoint.x;
