@@ -10,6 +10,7 @@ import {
   addWire,
   setPendingWire,
   clearPendingWire,
+  toggleSwitchValue,
 } from "./state";
 import { createToolbar } from "./toolbar";
 import { drawAll, hitTest, hitTestPin, getComponentDef } from "./renderer";
@@ -39,7 +40,12 @@ resize();
 canvas.addEventListener("click", (e) => {
   const point = { x: e.offsetX, y: e.offsetY };
 
-  if (state.selectedTool === "select") {
+  if (state.selectedTool === null) {
+    const hit = hitTest(state, point);
+    if (hit && hit.type === "switch") {
+      toggleSwitchValue(state, hit.id);
+    }
+  } else if (state.selectedTool === "select") {
     const hit = hitTest(state, point);
     if (hit) {
       if (e.ctrlKey) {

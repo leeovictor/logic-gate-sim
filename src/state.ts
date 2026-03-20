@@ -20,10 +20,12 @@ export function addComponent(
   type: ComponentType,
   position: Point,
 ): PlacedComponent {
+  const def = getComponentDef(type);
   const component: PlacedComponent = {
     id: `comp-${nextId++}`,
     type,
     position,
+    state: def?.defaultState ? { ...def.defaultState } : {},
   };
   state.components.push(component);
   return component;
@@ -120,4 +122,10 @@ export function setPendingWire(state: EditorState, componentId: string, pinIndex
 
 export function clearPendingWire(state: EditorState): void {
   state.pendingWire = null;
+}
+
+export function toggleSwitchValue(state: EditorState, componentId: string): void {
+  const comp = state.components.find((c) => c.id === componentId);
+  if (!comp || comp.type !== "switch") return;
+  comp.state.value = comp.state.value ? 0 : 1;
 }

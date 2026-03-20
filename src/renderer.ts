@@ -1,8 +1,10 @@
 import type { ComponentType, ComponentDef, EditorState, PlacedComponent, Point, PinDef } from "./types";
 import { andGate } from "./components/and-gate";
+import { switchComponent } from "./components/switch";
 
 const registry = new Map<ComponentType, ComponentDef>([
   ["and-gate", andGate],
+  ["switch", switchComponent],
 ]);
 
 export function getComponentDef(type: ComponentType): ComponentDef | undefined {
@@ -38,7 +40,7 @@ export function drawAll(
   for (const comp of state.components) {
     const def = registry.get(comp.type);
     if (def) {
-      def.draw(ctx, comp.position.x, comp.position.y);
+      def.draw(ctx, comp.position.x, comp.position.y, comp.state);
 
       if (state.selectedComponentIds.has(comp.id)) {
         const padding = 4;

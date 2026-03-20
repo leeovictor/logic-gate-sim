@@ -12,7 +12,7 @@ export interface PinDef {
   y: number;
 }
 
-export type ComponentType = "and-gate";
+export type ComponentType = "and-gate" | "switch";
 
 export type ToolMode = "select" | "wire" | ComponentType;
 
@@ -22,7 +22,8 @@ export interface ComponentDef {
   width: number;
   height: number;
   pins: PinDef[];
-  draw(ctx: CanvasRenderingContext2D, x: number, y: number): void;
+  defaultState?: Record<string, unknown>;
+  draw(ctx: CanvasRenderingContext2D, x: number, y: number, state?: Record<string, unknown>): void;
 }
 
 export interface Wire {
@@ -42,6 +43,7 @@ export interface PlacedComponent {
   id: string;
   type: ComponentType;
   position: Point;
+  state: Record<string, unknown>;
 }
 
 export interface EditorState {
