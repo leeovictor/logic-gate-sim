@@ -10,6 +10,7 @@ const tools: ToolDef[] = [
   { id: "wire", label: "Wire" },
   { id: "and-gate", label: "AND Gate" },
   { id: "switch", label: "Switch" },
+  { id: "light", label: "Light" },
 ];
 
 export function createToolbar(
