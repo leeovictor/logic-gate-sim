@@ -1,5 +1,7 @@
 # Web-Based Circuit Logic Simulator
 
+![alt text](image.png)
+
 A browser-based digital logic circuit editor built with TypeScript and Vite. Place logic gates on a canvas, connect them with wires, and simulate signal propagation — all in the browser, no installation required.
 
 > **Status:** Early development — UI and rendering are functional; simulation logic is in progress.
