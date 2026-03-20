@@ -25,9 +25,6 @@ if (urlLoaded) {
   state._nextId = urlLoaded._nextId;
   state._nextWireId = urlLoaded._nextWireId;
   state._nextJunctionId = urlLoaded._nextJunctionId;
-  
-  // Clean up URL to remove query param for future loads
-  window.history.replaceState({}, "", window.location.pathname);
 } else {
   // Fall back to localStorage
   const loaded = loadCircuit();
