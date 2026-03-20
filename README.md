@@ -1,87 +1,197 @@
 # Web-Based Circuit Logic Simulator
 
-A browser-based digital logic circuit editor built with TypeScript and Vite. Place logic gates on a canvas, connect them with wires, and simulate signal propagation — all in the browser, no installation required.
+A browser-based digital logic circuit editor and simulator built with TypeScript and Vite. Design circuits by placing logic gates on a canvas, connecting them with wires, and watching signals propagate in real time — all in the browser with zero installation.
 
 ![alt text](image.png)
 
-Online demo: https://leeovictor.github.io/logic-gate-sim/
-
-> **Status:** Early development — UI and rendering are functional; simulation logic is in progress.
+**Online demo:** https://leeovictor.github.io/logic-gate-sim/
 
 ## Features
 
+### Circuit Design
 - Full-viewport HTML5 Canvas rendering
-- Toolbar with selectable gate/tool modes
+- Toolbar with selectable component modes
 - Place logic gates by clicking the canvas
-- Ghost preview follows the cursor while placing components
-- Wire connections between component output and input pins
+- Ghost preview follows cursor while placing
+- Wire connections between component pins (output → input)
 - Select, drag, and multi-select components (Ctrl+click and selection box)
-- Real-time simulation with topological sort (Kahn's algorithm)
+- Undo/redo support (Ctrl+Z / Ctrl+Shift+Z)
+
+### Simulation
+- Real-time circuit evaluation with topological sort (Kahn's algorithm)
+- Cycle detection and graceful handling
 - Toggle switch inputs by clicking in select mode
 - Light component as visual output indicator
-- Supported components: AND gate, OR gate, NOT gate, Switch, Light
+- Signal propagation: `1` (on) / `0` (off)
+
+### Supported Components
+- **AND Gate** — logical AND of 2 inputs
+- **OR Gate** — logical OR of 2 inputs  
+- **NOT Gate** — logical NOT (inverter)
+- **Switch** — toggle input (0/1)
+- **Light** — output indicator (visual feedback)
+
+### Data Persistence & Sharing
+- Save/load circuits in browser localStorage
+- Export circuits as compressed shareable URLs
+- Import circuits from shared links
+- JSON circuit format with optional compression
 
 ## Getting Started
 
 ### Prerequisites
+- Node.js 18 or later
+- npm or yarn
 
-- Node.js ≥ 18
-- npm
-
-### Install & run
+### Installation & Development
 
 ```bash
+# Clone and install
+git clone https://github.com/leeovictor/logic-gate-sim.git
+cd web-based-circuit-logic-simulator
 npm install
+
+# Start dev server (opens at http://localhost:5173)
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+### Build for Production
+
+```bash
+npm run build
+# Outputs to dist/
+```
 
 ## Scripts
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Start Vite dev server |
-| `npm run build` | Production build (outputs to `dist/`) |
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Start Vite dev server with hot reload |
+| `npm run build` | Create optimized production build in `dist/` |
 | `npm run preview` | Preview production build locally |
-| `npm run test` | Run all tests once |
+| `npm run test` | Run all tests once (Vitest) |
 | `npm run test:watch` | Run tests in watch mode |
 
 ## Project Structure
 
 ```
 src/
-  main.ts          # Orchestrator — DOM setup, canvas sizing, event handlers, render loop
-  types.ts         # Core interfaces: Point, ComponentType, ComponentDef, PlacedComponent, EditorState, Wire
-  state.ts         # State factory and mutations (addComponent, addWire, drag, selection, …)
-  registry.ts      # Map<ComponentType, ComponentDef> — single source of truth for component definitions
-  renderer.ts      # drawAll(), hit-testing (hitTest, hitTestPin), getPinPosition()
-  simulation.ts    # evaluateCircuit() — topological sort + signal propagation
-  handlers.ts      # Canvas event handlers — delegates to state mutations, calls reEvaluate()
-  toolbar.ts       # HTML toolbar with tool-select buttons
-  style.css        # Global styles, toolbar, canvas positioning
+  main.ts            # App orchestrator — canvas setup, event handlers, render loop
+  types.ts           # Type definitions: Point, ComponentType, ComponentDef, PlacedComponent, EditorState, Wire
+  state.ts           # State factory & mutations (addComponent, addWire, deleteComponent, etc.)
+  registry.ts        # Map<ComponentType, ComponentDef> — component registry
+  renderer.ts        # Canvas rendering (drawAll), hit-testing (hitTest, hitTestPin), getPinPosition()
+  simulation.ts      # Circuit evaluation — topological sort + signal propagation
+  handlers.ts        # Canvas event handlers (mouse, keyboard)
+  toolbar.ts         # HTML toolbar with component selection buttons
+  toolbar-icons.ts   # Toolbar SVG icon definitions
+  persistence.ts     # localStorage save/load functionality
+  sharing.ts         # Circuit export/import with compression
+  style.css          # Styles (reset, toolbar, canvas, buttons)
   components/
-    and-gate.ts    # AND gate (arc body, 2 inputs, 1 output)
-    or-gate.ts     # OR gate (curved body, 2 inputs, 1 output)
-    not-gate.ts    # NOT gate (triangle + bubble, 1 input, 1 output)
-    switch.ts      # Toggle switch (interactive input source)
-    light.ts       # Light bulb (visual output indicator)
-  __tests__/       # Vitest test files
+    and-gate.ts      # AND gate component definition
+    or-gate.ts       # OR gate component definition
+    not-gate.ts      # NOT gate component definition
+    switch.ts        # Switch (toggle input)
+    light.ts         # Light (output indicator)
+  __tests__/         # Vitest unit tests
 ```
 
 ## Architecture
 
-- **Rendering:** continuous `requestAnimationFrame` loop — clears and redraws every frame.
-- **Components:** pure objects with `draw(ctx, x, y, state?)` and `evaluate(inputs, state)` methods — stateless blueprints, easy to test and extend.
-- **Component registry:** `Map<ComponentType, ComponentDef>` in `registry.ts`; add new gate types by registering them there.
-- **Simulation:** topological sort (Kahn's algorithm) evaluates components in dependency order; cycles are detected and handled gracefully.
-- **Event flow:** toolbar click → `setSelectedTool` → canvas interaction → state mutation → `reEvaluate()` → render loop picks up changes.
+### Core Design Principles
+
+- **No external dependencies** — Rendering and logic built with vanilla TypeScript & Canvas API
+- **Pure component definitions** — Components are stateless objects with `draw()` and `evaluate()` methods; easy to test and extend
+- **Mutable state** — Direct mutation of `EditorState` object (no immutability overhead)
+- **Continuous rendering** — `requestAnimationFrame` loop clears and redraws canvas every frame
+- **Topological sort** — Circuit evaluation order determined by Kahn's algorithm; cycles detected and handled
+
+### Signal Flow
+
+User interaction → Event handler → State mutation → `reEvaluate()` → Render loop picks up changes
+
+### Data Format
+
+Circuits stored as JSON:
+```json
+{
+  "components": [
+    { "id": "comp-0", "type": "switch", "position": { "x": 10, "y": 20 }, "state": { "value": 1 } },
+    { "id": "comp-1", "type": "light", "position": { "x": 100, "y": 20 } }
+  ],
+  "wires": [
+    { "id": "wire-0", "from": { "componentId": "comp-0", "pinIndex": 0 }, "to": { "componentId": "comp-1", "pinIndex": 0 } }
+  ]
+}
+```
+
+Serializable to compressed URLs for easy sharing.
 
 ## Tech Stack
 
-- [TypeScript](https://www.typescriptlang.org/) (strict mode, ES2020)
-- [Vite](https://vitejs.dev/) (build tool & dev server)
-- [Vitest](https://vitest.dev/) (unit testing)
+- [TypeScript](https://www.typescriptlang.org/) (5.x, strict mode)
+- [Vite](https://vitejs.dev/) (8.x, dev server & build tool)
+- [Vitest](https://vitest.dev/) (4.x, unit testing)
+- [fflate](https://github.com/101arrowz/fflate) (data compression for sharing)
+
+## Development
+
+### Testing
+
+```bash
+# Run all tests once
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run a specific test file
+npx vitest run src/__tests__/and-gate.test.ts
+```
+
+Test files use [Vitest](https://vitest.dev/) and mock the Canvas 2D context with `vi.fn()`.
+
+### Adding a New Component
+
+1. **Define the type** in [src/types.ts](src/types.ts) — add to the `ComponentType` union
+2. **Create component definition** — new file [src/components/my-component.ts](src/components/)
+   ```typescript
+   export const myComponent: ComponentDef = {
+     type: 'my-component',
+     label: 'My Component',
+     width: 60,
+     height: 40,
+     pins: [
+       { x: 0, y: 10, kind: 'input' },
+       { x: 60, y: 10, kind: 'output' }
+     ],
+     draw(ctx, x, y, state) {
+       // Canvas drawing code
+     },
+     evaluate(inputs, state) {
+       return [inputs[0] ? 1 : 0]; // Output array
+     }
+   };
+   ```
+3. **Register** in [src/registry.ts](src/registry.ts) — add to the component `Map`
+4. **Test** — create [src/__tests__/my-component.test.ts](src/__tests__/)
+
+### Code Style
+
+- Follow existing patterns in the codebase
+- No linter or formatter configured — maintain consistency with surrounding code
+- Write unit tests for new logic
+
+## Roadmap
+
+Planned features tracked in [plans/](plans/):
+- Flexible wire routing (curved paths, grid snapping)
+- Circuit sharing via URL
+- URL compression for large circuits
+- Additional component types (XOR, NAND, NOR, etc.)
+- Keyboard shortcuts for common operations
+- Dark/light theme toggle
 
 ## License
 
