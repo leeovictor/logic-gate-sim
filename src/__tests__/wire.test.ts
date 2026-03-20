@@ -8,8 +8,9 @@ import {
   clearPendingWire,
   deleteSelected,
   selectComponent,
-} from "../state";
-import { getPinPosition, hitTestPin } from "../renderer";
+} from "@/state";
+import { getPinPosition } from "@/ui/renderer";
+import { hitTestPin } from "@/ui/hit-test";
 
 // Helper: create state with two AND gates
 function stateWithTwoGates() {

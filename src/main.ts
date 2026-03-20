@@ -1,4 +1,4 @@
-import "./style.css";
+import "./ui/style.css";
 import {
   createEditorState,
   setSelectedTool,
@@ -6,13 +6,14 @@ import {
   deleteSelected,
   clearPendingWire,
   toggleSimulation,
-} from "./state";
-import { createToolbar } from "./toolbar";
-import { drawAll } from "./renderer";
-import { evaluateCircuit } from "./simulation";
-import { handleCanvasClick, handleCanvasMouseDown, handleCanvasMouseMove, handleCanvasMouseUp } from "./handlers";
-import { saveCircuit, loadCircuit } from "./persistence";
-import { loadFromUrl, copyShareUrl, showToast } from "./sharing";
+} from "@/state";
+import { createToolbar } from "@/ui/toolbar";
+import { drawAll } from "@/ui/renderer";
+import { evaluateCircuit } from "@/core/simulation";
+import { handleCanvasClick, handleCanvasMouseDown, handleCanvasMouseMove, handleCanvasMouseUp } from "@/ui/handlers";
+import { saveCircuit, loadCircuit } from "@/storage/persistence";
+import { loadFromUrl, copyShareUrl } from "@/storage/sharing";
+import { showToast } from "@/ui/toast";
 
 const state = createEditorState();
 

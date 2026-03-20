@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { saveCircuit, loadCircuit } from "../persistence";
-import { createEditorState, addComponent, addWire } from "../state";
+import { saveCircuit, loadCircuit } from "@/storage/persistence";
+import { createEditorState, addComponent, addWire } from "@/state";
 
 const storageMock: Record<string, string> = {};
 

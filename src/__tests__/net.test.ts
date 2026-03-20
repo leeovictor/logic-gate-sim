@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { createEditorState, addComponent, addWire } from "../state";
-import { buildNets, resolveNetSignal } from "../simulation";
-import type { Net } from "../types";
+import { createEditorState, addComponent, addWire } from "@/state";
+import { buildNets, resolveNetSignal } from "@/core/simulation";
+import type { Net } from "@/core/types";
 
 describe("buildNets", () => {
   it("creates single net for isolated pin", () => {

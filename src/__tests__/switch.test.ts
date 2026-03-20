@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
-import { switchComponent } from "../components/switch";
+import { switchComponent } from "@/core/components/switch";
 import {
   createEditorState,
   addComponent,
   toggleSwitchValue,
-} from "../state";
+} from "@/state";
 
 describe("switch component", () => {
   it("tem type, label, width, height corretos", () => {

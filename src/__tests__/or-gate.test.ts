@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { orGate } from "../components/or-gate";
+import { orGate } from "@/core/components/or-gate";
 
 describe("orGate", () => {
   it("has correct type and dimensions", () => {

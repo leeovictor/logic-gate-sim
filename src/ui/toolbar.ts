@@ -1,4 +1,4 @@
-import type { ToolMode } from "./core/types";
+import type { ToolMode } from "@/core/types";
 import {
   selectIcon,
   wireIcon,

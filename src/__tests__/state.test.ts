@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createEditorState, addComponent, setSelectedTool, startDrag, updateDrag, endDrag, startSelectionBox, updateSelectionBox, endSelectionBox } from "../state";
+import { createEditorState, addComponent, setSelectedTool, startDrag, updateDrag, endDrag, startSelectionBox, updateSelectionBox, endSelectionBox } from "@/state";
 
 describe("createEditorState", () => {
   it("returns initial state with no tool and no components", () => {

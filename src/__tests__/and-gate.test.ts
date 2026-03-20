@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { andGate } from "../components/and-gate";
+import { andGate } from "@/core/components/and-gate";
 
 describe("andGate", () => {
   it("has correct type and dimensions", () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { notGate } from "../components/not-gate";
+import { notGate } from "@/core/components/not-gate";
 
 describe("notGate", () => {
   it("has correct type and dimensions", () => {

@@ -1,5 +1,5 @@
-import type { EditorState, Net, SignalValue, WireEndpoint } from "./types";
-import { getComponentDef } from "./registry";
+import type { EditorState, Net, SignalValue, WireEndpoint } from "@/core/types";
+import { getComponentDef } from "@/core/registry";
 
 interface UnionFind {
   parent: Map<string, string>;

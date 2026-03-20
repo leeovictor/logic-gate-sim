@@ -1,28 +1,6 @@
-import type { EditorState, ComponentType, ToolMode, Point, PlacedComponent, WireSegment, WireJunction, WireEndpoint, PendingWire } from "./core/types";
-import { getComponentDef } from "./core/registry";
-
-export function createEditorState(): EditorState {
-  return {
-    selectedTool: null,
-    components: [],
-    cursorPosition: null,
-    selectedComponentIds: new Set(),
-    selectedWireIds: new Set(),
-    selectedJunctionIds: new Set(),
-    wireSegments: [],
-    junctions: [],
-    pendingWire: null,
-    hoveredPin: null,
-    dragging: null,
-    selectionBox: null,
-    simulationEnabled: false,
-    events: new EventTarget(),
-    nets: [],
-    _nextId: 0,
-    _nextWireId: 0,
-    _nextJunctionId: 0,
-  };
-}
+import type { EditorState, ComponentType, ToolMode, Point, PlacedComponent, WireSegment, WireJunction, WireEndpoint, PendingWire } from "@/core/types";
+import { getComponentDef } from "@/core/registry";
+import { endpointsEqual, resolveEndpoint } from "./editor-state";
 
 export function addComponent(
   state: EditorState,
@@ -119,20 +97,6 @@ export function deleteSelected(state: EditorState): void {
     state.junctions = state.junctions.filter((j) => j.id !== junctionId);
   }
   state.selectedJunctionIds.clear();
-}
-
-function endpointsEqual(a: WireEndpoint, b: WireEndpoint): boolean {
-  if (a.type !== b.type) return false;
-  if (a.type === "pin" && b.type === "pin") {
-    return a.componentId === b.componentId && a.pinIndex === b.pinIndex;
-  }
-  if (a.type === "point" && b.type === "point") {
-    return a.x === b.x && a.y === b.y;
-  }
-  if (a.type === "junction" && b.type === "junction") {
-    return a.junctionId === b.junctionId;
-  }
-  return false;
 }
 
 export function addWireSegment(
@@ -400,24 +364,4 @@ export function endSelectionBox(state: EditorState, ctrlKey: boolean): void {
   }
 
   state.selectionBox = null;
-}
-
-function resolveEndpoint(state: EditorState, endpoint: WireEndpoint): Point | null {
-  if (endpoint.type === "pin") {
-    const comp = state.components.find((c) => c.id === endpoint.componentId);
-    if (!comp) return null;
-    const def = getComponentDef(comp.type);
-    if (!def) return null;
-    const pin = def.pins[endpoint.pinIndex];
-    if (!pin) return null;
-    return { x: comp.position.x + pin.x, y: comp.position.y + pin.y };
-  }
-  if (endpoint.type === "point") {
-    return { x: endpoint.x, y: endpoint.y };
-  }
-  if (endpoint.type === "junction") {
-    const junction = state.junctions.find((j) => j.id === endpoint.junctionId);
-    return junction ? junction.position : null;
-  }
-  return null;
 }

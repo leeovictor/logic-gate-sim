@@ -1,5 +1,5 @@
 import { deflateSync, inflateSync } from "fflate";
-import type { ComponentType, EditorState, PlacedComponent, Wire, WireSegment, WireJunction } from "./core/types";
+import type { ComponentType, EditorState, PlacedComponent, Wire, WireSegment, WireJunction } from "@/core/types";
 
 const STORAGE_KEY = "circuit";
 

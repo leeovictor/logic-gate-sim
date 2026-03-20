@@ -5,9 +5,9 @@ import {
   addWire,
   toggleSwitchValue,
   toggleSimulation,
-} from "../state";
-import { evaluateCircuit, clearAllPinValues } from "../simulation";
-import type { SignalValue } from "../types";
+} from "@/state";
+import { evaluateCircuit, clearAllPinValues } from "@/core/simulation";
+import type { SignalValue } from "@/core/types";
 
 // Helper: create a basic circuit: Switch → AND ← Switch → Light
 function basicAndCircuit() {

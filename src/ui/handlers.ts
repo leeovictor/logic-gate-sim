@@ -1,4 +1,4 @@
-import type { EditorState, Point } from "./core/types";
+import type { EditorState, Point } from "@/core/types";
 import {
   addComponent,
   selectComponent,
@@ -21,9 +21,9 @@ import {
   startSelectionBox,
   updateSelectionBox,
   endSelectionBox,
-} from "./state";
-import { hitTest, hitTestPin, hitTestWire, hitTestJunction } from "./renderer";
-import type { HoveredPin } from "./types";
+} from "@/state";
+import { hitTest, hitTestPin, hitTestWire, hitTestJunction } from "./hit-test";
+import type { HoveredPin } from "@/core/types";
 
 export interface HandlerContext {
   reEvaluate(): void;

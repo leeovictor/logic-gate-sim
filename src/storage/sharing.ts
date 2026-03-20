@@ -1,4 +1,4 @@
-import type { EditorState } from "./core/types";
+import type { EditorState } from "@/core/types";
 import { exportCircuitToBase64, importCircuitFromBase64, type SerializedCircuitV2 } from "./persistence";
 
 /**
@@ -40,27 +40,3 @@ export function loadFromUrl(): SerializedCircuitV2 | null {
   }
 }
 
-/**
- * Show a toast notification message.
- * Appears at the bottom-center of the viewport and auto-dismisses after duration ms.
- */
-export function showToast(message: string, duration: number = 3000): void {
-  const toast = document.createElement("div");
-  toast.className = "toast";
-  toast.textContent = message;
-  document.body.appendChild(toast);
-
-  // Trigger animation (fade-in via CSS)
-  requestAnimationFrame(() => {
-    toast.classList.add("show");
-  });
-
-  // Auto-remove after duration
-  setTimeout(() => {
-    toast.classList.remove("show");
-    // Wait for fade-out animation to complete
-    setTimeout(() => {
-      toast.remove();
-    }, 300);
-  }, duration);
-}

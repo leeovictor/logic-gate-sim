@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { exportCircuitToBase64, importCircuitFromBase64, serializeToBinary, deserializeFromBinary } from "../persistence";
-import { generateShareUrl, loadFromUrl } from "../sharing";
-import { createEditorState, addComponent, addWire } from "../state";
+import { exportCircuitToBase64, importCircuitFromBase64, serializeToBinary, deserializeFromBinary } from "@/storage/persistence";
+import { generateShareUrl, loadFromUrl } from "@/storage/sharing";
+import { createEditorState, addComponent, addWire } from "@/state";
 
 beforeEach(() => {
   // Mock window.location for tests
