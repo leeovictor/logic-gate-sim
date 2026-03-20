@@ -48,3 +48,11 @@ export function toggleComponentSelection(state: EditorState, id: string): void {
 export function clearSelection(state: EditorState): void {
   state.selectedComponentIds.clear();
 }
+
+export function deleteSelected(state: EditorState): void {
+  if (state.selectedComponentIds.size === 0) return;
+  state.components = state.components.filter(
+    (c) => !state.selectedComponentIds.has(c.id),
+  );
+  state.selectedComponentIds.clear();
+}

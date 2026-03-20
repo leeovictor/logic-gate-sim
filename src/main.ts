@@ -6,6 +6,7 @@ import {
   selectComponent,
   toggleComponentSelection,
   clearSelection,
+  deleteSelected,
 } from "./state";
 import { createToolbar } from "./toolbar";
 import { drawAll, hitTest } from "./renderer";
@@ -48,6 +49,12 @@ canvas.addEventListener("click", (e) => {
   } else if (state.selectedTool) {
     addComponent(state, state.selectedTool, point);
     clearSelection(state);
+  }
+});
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Delete") {
+    deleteSelected(state);
   }
 });
 
