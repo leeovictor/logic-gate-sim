@@ -30,6 +30,9 @@ export interface ComponentDef {
 /** Signal value: 0 (off), 1 (on), or 'E' (error/conflict) */
 export type SignalValue = 0 | 1 | "E";
 
+/** Simulation mode: instant (converge in one call) or step (one propagation layer per step) */
+export type SimulationMode = "instant" | "step";
+
 /** Represents one end of a wire segment */
 export type WireEndpoint =
   | { type: "pin"; componentId: string; pinIndex: number }
@@ -97,6 +100,21 @@ export interface DragState {
   junctionOffsets: Map<string, Point>;
 }
 
+export interface StepSimulationState {
+  /** Steps executed since simulation start/reset */
+  stepCount: number;
+  /** Whether auto-step is running */
+  running: boolean;
+  /** Interval in ms between auto-steps */
+  stepInterval: number;
+  /** Timer ID for auto-step (for cancellation) */
+  autoStepTimer: ReturnType<typeof setInterval> | null;
+  /** Net values from the previous step (for stability detection) */
+  previousNetValues: Map<string, SignalValue>;
+  /** Whether the circuit has stabilized (no net changed in last step) */
+  stable: boolean;
+}
+
 export interface EditorState {
   selectedTool: ToolMode | null;
   components: PlacedComponent[];
@@ -111,6 +129,8 @@ export interface EditorState {
   dragging: DragState | null;
   selectionBox: SelectionBox | null;
   simulationEnabled: boolean;
+  simulationMode: SimulationMode;
+  stepSimulation: StepSimulationState;
   events: EventTarget;
   nets: Net[];
   _nextId: number;
