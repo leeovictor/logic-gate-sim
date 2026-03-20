@@ -259,4 +259,19 @@ describe("toggleSimulation integration", () => {
     evaluateCircuit(state);
     expect(light.state.value).toBe(1); // both on
   });
+
+  it("modo default é instant — evaluateCircuit funciona normalmente", () => {
+    const state = createEditorState();
+    expect(state.simulationMode).toBe("instant");
+
+    const sw = addComponent(state, "switch", { x: 0, y: 0 });
+    const light = addComponent(state, "light", { x: 100, y: 0 });
+    addWire(state, { type: "pin", componentId: sw.id, pinIndex: 0 }, { type: "pin", componentId: light.id, pinIndex: 0 });
+
+    state.simulationEnabled = true;
+    sw.state.value = 1;
+    evaluateCircuit(state);
+
+    expect(light.state.value).toBe(1);
+  });
 });
