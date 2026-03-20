@@ -1,5 +1,6 @@
 import type { EditorState } from "@/core/types";
-import { exportCircuitToBase64, importCircuitFromBase64, type SerializedCircuitV2 } from "./persistence";
+import { exportCircuitToBase64, importCircuitFromBase64 } from "./binary-format";
+import type { SerializedCircuitV2 } from "./persistence";
 
 /**
  * Generate a shareable URL for the current circuit.

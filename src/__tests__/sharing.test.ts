@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { exportCircuitToBase64, importCircuitFromBase64, serializeToBinary, deserializeFromBinary } from "@/storage/persistence";
+import { exportCircuitToBase64, importCircuitFromBase64, serializeToBinary, deserializeFromBinary } from "@/storage/binary-format";
 import { generateShareUrl, loadFromUrl } from "@/storage/sharing";
 import { createEditorState, addComponent, addWire } from "@/state";
 
