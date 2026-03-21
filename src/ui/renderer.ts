@@ -26,12 +26,20 @@ export function drawAll(
   height: number,
 ): void {
   ctx.clearRect(0, 0, width, height);
+
+  ctx.save();
+  ctx.translate(state.viewport.panX, state.viewport.panY);
+  ctx.scale(state.viewport.zoom, state.viewport.zoom);
+
   drawComponents(ctx, state);
   drawWireSegments(ctx, state);
   drawPinIndicators(ctx, state);
   drawPendingWire(ctx, state);
   drawSelectionBox(ctx, state);
   drawGhostPreview(ctx, state);
+
+  ctx.restore();
+
   drawStepOverlay(ctx, state, width);
 }
 

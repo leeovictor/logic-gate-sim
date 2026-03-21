@@ -50,3 +50,9 @@ export {
   resetStep,
   toggleSimulation,
 } from "./simulation";
+
+export {
+  panViewport,
+  zoomViewport,
+  resetViewport,
+} from "./viewport";

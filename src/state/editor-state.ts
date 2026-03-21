@@ -1,4 +1,4 @@
-import type { EditorState, Point, WireEndpoint } from "@/core/types";
+import type { EditorState, Point, WireEndpoint, Viewport } from "@/core/types";
 import { getComponentDef } from "@/core/registry";
 
 export function createEditorState(): EditorState {
@@ -31,6 +31,8 @@ export function createEditorState(): EditorState {
     _nextId: 0,
     _nextWireId: 0,
     _nextJunctionId: 0,
+    viewport: { panX: 0, panY: 0, zoom: 1 },
+    panning: false,
   };
 }
 
@@ -66,4 +68,11 @@ export function resolveEndpoint(state: EditorState, endpoint: WireEndpoint): Poi
     return junction ? junction.position : null;
   }
   return null;
+}
+
+export function screenToWorld(screen: Point, viewport: Viewport): Point {
+  return {
+    x: (screen.x - viewport.panX) / viewport.zoom,
+    y: (screen.y - viewport.panY) / viewport.zoom,
+  };
 }

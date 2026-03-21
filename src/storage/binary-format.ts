@@ -7,7 +7,7 @@ import { isValidCircuit, migrateV1toV2 } from "./persistence";
 // IMPORTANT: only append new types at the end to preserve backward compatibility
 const COMPONENT_TYPES: ComponentType[] = ["and-gate", "or-gate", "not-gate", "switch", "light", "nand-gate", "nor-gate", "xor-gate", "xnor-gate"];
 
-const FORMAT_VERSION = 5;
+const FORMAT_VERSION = 6;
 
 // ---- Base64 URL-safe helpers ----
 
@@ -59,8 +59,8 @@ function writeWireEndpoint(view: DataView, offset: number, ep: WireSegment["from
     view.setUint8(offset, ep.pinIndex); offset++;
   } else if (ep.type === "point") {
     view.setUint8(offset, 1); offset++;
-    view.setUint16(offset, ep.x, true); offset += 2;
-    view.setUint16(offset, ep.y, true); offset += 2;
+    view.setInt16(offset, ep.x, true); offset += 2;
+    view.setInt16(offset, ep.y, true); offset += 2;
   } else {
     // junction
     const idx = junctionIds.indexOf(ep.junctionId);
@@ -70,15 +70,15 @@ function writeWireEndpoint(view: DataView, offset: number, ep: WireSegment["from
   return offset;
 }
 
-function readWireEndpoint(view: DataView, offset: number): { ep: WireSegment["from"]; offset: number } {
+function readWireEndpoint(view: DataView, offset: number, signed: boolean): { ep: WireSegment["from"]; offset: number } {
   const tag = view.getUint8(offset); offset++;
   if (tag === 0) {
     const compIndex = view.getUint16(offset, true); offset += 2;
     const pinIndex = view.getUint8(offset); offset++;
     return { ep: { type: "pin", componentId: `comp-${compIndex}`, pinIndex }, offset };
   } else if (tag === 1) {
-    const x = view.getUint16(offset, true); offset += 2;
-    const y = view.getUint16(offset, true); offset += 2;
+    const x = signed ? view.getInt16(offset, true) : view.getUint16(offset, true); offset += 2;
+    const y = signed ? view.getInt16(offset, true) : view.getUint16(offset, true); offset += 2;
     return { ep: { type: "point", x, y }, offset };
   } else {
     const juncIndex = view.getUint16(offset, true); offset += 2;
@@ -120,12 +120,12 @@ export function serializeToBinary(state: EditorState): Uint8Array {
   view.setUint16(offset, state._nextWireId, true); offset += 2;
   view.setUint16(offset, state._nextJunctionId, true); offset += 2;
 
-  // Components
+  // Components (v6+: signed Int16 for positions to support negative coords)
   for (const comp of state.components) {
     const typeEnum = COMPONENT_TYPES.indexOf(comp.type);
     view.setUint8(offset, typeEnum); offset++;
-    view.setUint16(offset, comp.position.x, true); offset += 2;
-    view.setUint16(offset, comp.position.y, true); offset += 2;
+    view.setInt16(offset, comp.position.x, true); offset += 2;
+    view.setInt16(offset, comp.position.y, true); offset += 2;
     const stateFlags = comp.state.value ? 1 : 0;
     view.setUint8(offset, stateFlags); offset++;
   }
@@ -148,10 +148,10 @@ export function serializeToBinary(state: EditorState): Uint8Array {
     }
   }
 
-  // Junctions
+  // Junctions (v6+: signed Int16 for positions)
   for (const j of state.junctions) {
-    view.setUint16(offset, j.position.x, true); offset += 2;
-    view.setUint16(offset, j.position.y, true); offset += 2;
+    view.setInt16(offset, j.position.x, true); offset += 2;
+    view.setInt16(offset, j.position.y, true); offset += 2;
   }
 
   // Simulation mode (1 byte: 0x00 = instant, 0x01 = step)
@@ -171,8 +171,11 @@ export function deserializeFromBinary(bytes: Uint8Array): SerializedCircuitV2 | 
     let offset = 0;
 
     const version = view.getUint8(offset);
-    if (version !== 3 && version !== 4 && version !== 5) return null;
+    if (version < 3 || version > 6) return null;
     offset++;
+
+    // v6+ uses signed Int16 for positions; v3-5 used unsigned Uint16
+    const signed = version >= 6;
 
     const componentCount = view.getUint16(offset, true); offset += 2;
     const wireCount = view.getUint16(offset, true); offset += 2;
@@ -184,8 +187,8 @@ export function deserializeFromBinary(bytes: Uint8Array): SerializedCircuitV2 | 
     const components: PlacedComponent[] = [];
     for (let i = 0; i < componentCount; i++) {
       const typeEnum = view.getUint8(offset); offset++;
-      const x = view.getUint16(offset, true); offset += 2;
-      const y = view.getUint16(offset, true); offset += 2;
+      const x = signed ? view.getInt16(offset, true) : view.getUint16(offset, true); offset += 2;
+      const y = signed ? view.getInt16(offset, true) : view.getUint16(offset, true); offset += 2;
       const stateFlags = view.getUint8(offset); offset++;
       const type = COMPONENT_TYPES[typeEnum];
       if (!type) return null;
@@ -196,9 +199,9 @@ export function deserializeFromBinary(bytes: Uint8Array): SerializedCircuitV2 | 
 
     const wireSegments: WireSegment[] = [];
     for (let i = 0; i < wireCount; i++) {
-      const fromResult = readWireEndpoint(view, offset);
+      const fromResult = readWireEndpoint(view, offset, signed);
       offset = fromResult.offset;
-      const toResult = readWireEndpoint(view, offset);
+      const toResult = readWireEndpoint(view, offset, signed);
       offset = toResult.offset;
       
       let waypoints: undefined | any[] = undefined;
@@ -226,8 +229,8 @@ export function deserializeFromBinary(bytes: Uint8Array): SerializedCircuitV2 | 
 
     const junctions: WireJunction[] = [];
     for (let i = 0; i < junctionCount; i++) {
-      const x = view.getUint16(offset, true); offset += 2;
-      const y = view.getUint16(offset, true); offset += 2;
+      const x = signed ? view.getInt16(offset, true) : view.getUint16(offset, true); offset += 2;
+      const y = signed ? view.getInt16(offset, true) : view.getUint16(offset, true); offset += 2;
       junctions.push({ id: `junc-${i}`, position: { x, y } });
     }
 

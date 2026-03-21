@@ -22,7 +22,10 @@ import {
   startSelectionBox,
   updateSelectionBox,
   endSelectionBox,
+  panViewport,
+  zoomViewport,
 } from "@/state";
+import { screenToWorld } from "@/state";
 import { hitTest, hitTestPin, hitTestWire, hitTestJunction } from "./hit-test";
 import type { HoveredPin } from "@/core/types";
 
@@ -37,6 +40,37 @@ const DRAG_THRESHOLD = 3;
 
 let mouseDownPoint: Point | null = null;
 let dragOccurred = false;
+let panStart: Point | null = null;
+let spaceHeld = false;
+
+// Pan gesture handlers
+function handlePanStart(state: EditorState, e: MouseEvent): void {
+  panStart = { x: e.offsetX, y: e.offsetY };
+  state.panning = true;
+}
+
+function handlePanMove(state: EditorState, e: MouseEvent): void {
+  if (panStart === null) return;
+  const dx = e.offsetX - panStart.x;
+  const dy = e.offsetY - panStart.y;
+  panViewport(state, dx, dy);
+  panStart = { x: e.offsetX, y: e.offsetY };
+}
+
+function handlePanEnd(state: EditorState): void {
+  panStart = null;
+  state.panning = false;
+}
+
+export function setSpaceHeld(value: boolean): void {
+  spaceHeld = value;
+}
+
+export function handleWheel(state: EditorState, e: WheelEvent): void {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+  zoomViewport(state, factor, { x: e.offsetX, y: e.offsetY });
+}
 
 function handleNullToolClick(state: EditorState, point: Point, ctx: HandlerContext): void {
   const hit = hitTest(state, point);
@@ -151,12 +185,13 @@ export function handleCanvasClick(
   e: MouseEvent,
   ctx: HandlerContext,
 ): void {
-  if (dragOccurred) {
+  if (dragOccurred || state.panning) {
     dragOccurred = false;
     return;
   }
 
-  const point = { x: e.offsetX, y: e.offsetY };
+  const screenPoint = { x: e.offsetX, y: e.offsetY };
+  const point = screenToWorld(screenPoint, state.viewport);
 
   if (state.selectedTool === null) {
     handleNullToolClick(state, point, ctx);
@@ -170,8 +205,16 @@ export function handleCanvasClick(
 }
 
 export function handleCanvasMouseDown(state: EditorState, e: MouseEvent, ctx: HandlerContext): void {
+  // Handle middle-mouse pan or space+left pan
+  if (e.button === 1 || (spaceHeld && e.button === 0)) {
+    handlePanStart(state, e);
+    return;
+  }
+
   if (state.selectedTool !== "select") return;
-  const point: Point = { x: e.offsetX, y: e.offsetY };
+
+  const screenPoint = { x: e.offsetX, y: e.offsetY };
+  const point = screenToWorld(screenPoint, state.viewport);
   mouseDownPoint = point;
   dragOccurred = false;
 
@@ -203,7 +246,14 @@ export function handleCanvasMouseDown(state: EditorState, e: MouseEvent, ctx: Ha
 }
 
 export function handleCanvasMouseMove(state: EditorState, e: MouseEvent): void {
-  const point: Point = { x: e.offsetX, y: e.offsetY };
+  // Handle panning
+  if (panStart !== null) {
+    handlePanMove(state, e);
+    return;
+  }
+
+  const screenPoint = { x: e.offsetX, y: e.offsetY };
+  const point = screenToWorld(screenPoint, state.viewport);
   state.cursorPosition = point;
 
   if (state.selectedTool === "wire") {
@@ -235,6 +285,12 @@ export function handleCanvasMouseMove(state: EditorState, e: MouseEvent): void {
 }
 
 export function handleCanvasMouseUp(state: EditorState, e: MouseEvent, ctx: HandlerContext): void {
+  // Handle pan end
+  if (panStart !== null) {
+    handlePanEnd(state);
+    return;
+  }
+
   if (state.selectionBox) {
     endSelectionBox(state, e.ctrlKey);
   }

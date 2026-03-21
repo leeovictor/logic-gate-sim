@@ -116,6 +116,15 @@ export interface StepSimulationState {
   stable: boolean;
 }
 
+export interface Viewport {
+  /** Horizontal pan offset in screen coordinates */
+  panX: number;
+  /** Vertical pan offset in screen coordinates */
+  panY: number;
+  /** Zoom level (1.0 = 100%, clamped to [0.1, 5]) */
+  zoom: number;
+}
+
 export interface EditorState {
   selectedTool: ToolMode | null;
   components: PlacedComponent[];
@@ -138,6 +147,8 @@ export interface EditorState {
   _nextId: number;
   _nextWireId: number;
   _nextJunctionId: number;
+  viewport: Viewport;
+  panning: boolean;
 }
 
 /** Snapshot of circuit-structural state for undo/redo */

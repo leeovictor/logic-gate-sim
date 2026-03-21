@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { exportCircuitToBase64, importCircuitFromBase64, serializeToBinary, deserializeFromBinary } from "@/storage/binary-format";
 import { generateShareUrl, loadFromUrl } from "@/storage/sharing";
-import { createEditorState, addComponent, addWire, addWireSegment } from "@/state";
+import { createEditorState, addComponent, addWire, addWireSegment, addJunction, splitWireAtJunction } from "@/state";
 
 beforeEach(() => {
   // Mock window.location for tests
@@ -507,5 +507,127 @@ describe("loadFromUrl", () => {
     const result = loadFromUrl();
     // In test environment, window.location.search is typically empty
     expect(result).toBeNull();
+  });
+});
+
+describe("negative coordinates (v6 signed Int16)", () => {
+  it("round-trips components at negative positions", () => {
+    const state = createEditorState();
+    addComponent(state, "and-gate", { x: -100, y: -200 });
+    addComponent(state, "switch", { x: -50, y: 300 });
+
+    const bytes = serializeToBinary(state);
+    const result = deserializeFromBinary(bytes);
+
+    expect(result).not.toBeNull();
+    expect(result!.components[0].position).toEqual({ x: -100, y: -200 });
+    expect(result!.components[1].position).toEqual({ x: -50, y: 300 });
+  });
+
+  it("round-trips wire endpoints of type 'point' at negative positions", () => {
+    const state = createEditorState();
+    addComponent(state, "switch", { x: -200, y: -100 });
+    addWireSegment(
+      state,
+      { type: "point", x: -150, y: -80 },
+      { type: "point", x: -50, y: -30 },
+    );
+
+    const bytes = serializeToBinary(state);
+    const result = deserializeFromBinary(bytes);
+
+    expect(result).not.toBeNull();
+    expect(result!.wireSegments).toHaveLength(1);
+    const from = result!.wireSegments[0].from;
+    const to = result!.wireSegments[0].to;
+    expect(from).toEqual({ type: "point", x: -150, y: -80 });
+    expect(to).toEqual({ type: "point", x: -50, y: -30 });
+  });
+
+  it("round-trips junctions at negative positions", () => {
+    const state = createEditorState();
+    const sw = addComponent(state, "switch", { x: -300, y: -200 });
+    const gate = addComponent(state, "and-gate", { x: -100, y: -200 });
+    addWire(
+      state,
+      { type: "pin", componentId: sw.id, pinIndex: 0 },
+      { type: "pin", componentId: gate.id, pinIndex: 0 },
+    );
+    const junction = addJunction(state, { x: -200, y: -200 });
+    splitWireAtJunction(state, state.wireSegments[0].id, junction.id);
+
+    const bytes = serializeToBinary(state);
+    const result = deserializeFromBinary(bytes);
+
+    expect(result).not.toBeNull();
+    expect(result!.junctions).toHaveLength(1);
+    expect(result!.junctions[0].position).toEqual({ x: -200, y: -200 });
+  });
+
+  it("round-trips full Base64 share with negative coordinates", () => {
+    const state = createEditorState();
+    addComponent(state, "or-gate", { x: -500, y: -400 });
+    addComponent(state, "light", { x: 200, y: -100 });
+    addWireSegment(
+      state,
+      { type: "pin", componentId: state.components[0].id, pinIndex: 2 },
+      { type: "point", x: -300, y: -250 },
+    );
+
+    const encoded = exportCircuitToBase64(state);
+    const decoded = importCircuitFromBase64(encoded);
+
+    expect(decoded).not.toBeNull();
+    expect(decoded!.components[0].position).toEqual({ x: -500, y: -400 });
+    expect(decoded!.components[1].position).toEqual({ x: 200, y: -100 });
+    const to = decoded!.wireSegments[0].to;
+    expect(to).toEqual({ type: "point", x: -300, y: -250 });
+  });
+
+  it("round-trips mixed positive and negative positions", () => {
+    const state = createEditorState();
+    addComponent(state, "not-gate", { x: 0, y: 0 });
+    addComponent(state, "and-gate", { x: -1000, y: 500 });
+    addComponent(state, "switch", { x: 32000, y: -32000 });
+
+    const bytes = serializeToBinary(state);
+    const result = deserializeFromBinary(bytes);
+
+    expect(result).not.toBeNull();
+    expect(result!.components[0].position).toEqual({ x: 0, y: 0 });
+    expect(result!.components[1].position).toEqual({ x: -1000, y: 500 });
+    expect(result!.components[2].position).toEqual({ x: 32000, y: -32000 });
+  });
+
+  it("round-trips wire waypoints at negative positions", () => {
+    const state = createEditorState();
+    const sw = addComponent(state, "switch", { x: -200, y: -100 });
+    const gate = addComponent(state, "and-gate", { x: 200, y: -100 });
+    addWireSegment(
+      state,
+      { type: "pin", componentId: sw.id, pinIndex: 0 },
+      { type: "pin", componentId: gate.id, pinIndex: 0 },
+      [{ x: -100, y: -200 }, { x: 0, y: -200 }],
+    );
+
+    const bytes = serializeToBinary(state);
+    const result = deserializeFromBinary(bytes);
+
+    expect(result).not.toBeNull();
+    expect(result!.wireSegments[0].waypoints).toEqual([
+      { x: -100, y: -200 },
+      { x: 0, y: -200 },
+    ]);
+  });
+
+  it("handles Int16 boundary values (-32768 and 32767)", () => {
+    const state = createEditorState();
+    addComponent(state, "light", { x: -32768, y: 32767 });
+
+    const bytes = serializeToBinary(state);
+    const result = deserializeFromBinary(bytes);
+
+    expect(result).not.toBeNull();
+    expect(result!.components[0].position).toEqual({ x: -32768, y: 32767 });
   });
 });

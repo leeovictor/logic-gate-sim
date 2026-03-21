@@ -16,11 +16,12 @@ import {
   popLastSnapshot,
   undo,
   redo,
+  resetViewport,
 } from "@/state";
 import { createToolbar } from "@/ui/toolbar";
 import { drawAll } from "@/ui/renderer";
 import { evaluateCircuit, buildNets, resetStepSimulation } from "@/core/simulation";
-import { handleCanvasClick, handleCanvasMouseDown, handleCanvasMouseMove, handleCanvasMouseUp } from "@/ui/handlers";
+import { handleCanvasClick, handleCanvasMouseDown, handleCanvasMouseMove, handleCanvasMouseUp, handleWheel, setSpaceHeld } from "@/ui/handlers";
 import { saveCircuit, loadCircuit } from "@/storage/persistence";
 import { loadFromUrl, copyShareUrl } from "@/storage/sharing";
 import { showToast } from "@/ui/toast";
@@ -180,6 +181,14 @@ canvas.addEventListener("mouseup", (e) => {
 });
 
 window.addEventListener("keydown", (e) => {
+  if (e.key === " " && !e.repeat) {
+    e.preventDefault();
+    setSpaceHeld(true);
+  }
+  if (e.key === "Home") {
+    e.preventDefault();
+    resetViewport(state);
+  }
   if (e.key === "Delete") {
     pushSnapshot(history, state);
     deleteSelected(state);
@@ -209,6 +218,13 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
+window.addEventListener("keyup", (e) => {
+  if (e.key === " ") {
+    e.preventDefault();
+    setSpaceHeld(false);
+  }
+});
+
 canvas.addEventListener("mousemove", (e) => {
   handleCanvasMouseMove(state, e);
 });
@@ -216,6 +232,10 @@ canvas.addEventListener("mousemove", (e) => {
 canvas.addEventListener("mouseleave", () => {
   state.cursorPosition = null;
 });
+
+canvas.addEventListener("wheel", (e) => {
+  handleWheel(state, e);
+}, { passive: false });
 
 function render() {
   drawAll(ctx, state, canvas.width, canvas.height);

@@ -1,4 +1,4 @@
-export { createEditorState, endpointsEqual, resolveEndpoint } from "./editor-state";
+export { createEditorState, endpointsEqual, resolveEndpoint, screenToWorld } from "./editor-state";
 export type { EditorState } from "@/core/types";
 export {
   addComponent,
@@ -36,6 +36,9 @@ export {
   startSelectionBox,
   updateSelectionBox,
   endSelectionBox,
+  panViewport,
+  zoomViewport,
+  resetViewport,
 } from "./mutations";
 export {
   createHistory,
