@@ -130,6 +130,98 @@ export function lightIcon(): SVGSVGElement {
   return svg;
 }
 
+/**
+ * NAND gate: AND body + inversion bubble, matching nand-gate.ts.
+ * viewBox 0 0 32 22.
+ */
+export function nandGateIcon(): SVGSVGElement {
+  const svg = makeSvg("0 0 32 22");
+  // Input lines
+  add(svg, "line", { x1: "0", y1: "6.5", x2: "5", y2: "6.5" });
+  add(svg, "line", { x1: "0", y1: "15.5", x2: "5", y2: "15.5" });
+  // Body: flat left + semicircular arc right (center 13,11 r=9)
+  add(svg, "path", {
+    d: "M5,2 L13,2 A9,9 0 0 1 13,20 L5,20 Z",
+    "stroke-width": "2",
+  });
+  // Inversion bubble
+  add(svg, "circle", { cx: "22", cy: "11", r: "2.5", "stroke-width": "2" });
+  // Output line
+  add(svg, "line", { x1: "24.5", y1: "11", x2: "32", y2: "11" });
+  return svg;
+}
+
+/**
+ * NOR gate: OR body + inversion bubble, matching nor-gate.ts.
+ * viewBox 0 0 32 22.
+ */
+export function norGateIcon(): SVGSVGElement {
+  const svg = makeSvg("0 0 32 22");
+  // Input lines
+  add(svg, "line", { x1: "0", y1: "6.5", x2: "7", y2: "6.5" });
+  add(svg, "line", { x1: "0", y1: "15.5", x2: "7", y2: "15.5" });
+  // Body: top arc → right tip → bottom arc → concave left (adjusted for bubble)
+  add(svg, "path", {
+    d: "M5,2 Q19,2 24,11 Q19,20 5,20 Q11,11 5,2 Z",
+    "stroke-width": "2",
+  });
+  // Inversion bubble
+  add(svg, "circle", { cx: "26.5", cy: "11", r: "2.5", "stroke-width": "2" });
+  // Output line
+  add(svg, "line", { x1: "29", y1: "11", x2: "32", y2: "11" });
+  return svg;
+}
+
+/**
+ * XOR gate: OR body + extra concave left curve, matching xor-gate.ts.
+ * viewBox 0 0 28 22.
+ */
+export function xorGateIcon(): SVGSVGElement {
+  const svg = makeSvg("0 0 28 22");
+  // Input lines
+  add(svg, "line", { x1: "0", y1: "6.5", x2: "7", y2: "6.5" });
+  add(svg, "line", { x1: "0", y1: "15.5", x2: "7", y2: "15.5" });
+  // Body: top arc → right tip → bottom arc → concave left
+  add(svg, "path", {
+    d: "M5,2 Q16,2 22,11 Q16,20 5,20 Q11,11 5,2 Z",
+    "stroke-width": "2",
+  });
+  // Extra concave curve for XOR
+  add(svg, "path", {
+    d: "M-1,2 Q-6,11 -1,20",
+    "stroke-width": "2",
+  });
+  // Output line
+  add(svg, "line", { x1: "22", y1: "11", x2: "28", y2: "11" });
+  return svg;
+}
+
+/**
+ * XNOR gate: XOR body + inversion bubble, matching xnor-gate.ts.
+ * viewBox 0 0 32 22.
+ */
+export function xnorGateIcon(): SVGSVGElement {
+  const svg = makeSvg("0 0 32 22");
+  // Input lines
+  add(svg, "line", { x1: "0", y1: "6.5", x2: "7", y2: "6.5" });
+  add(svg, "line", { x1: "0", y1: "15.5", x2: "7", y2: "15.5" });
+  // Body: top arc → right tip → bottom arc → concave left (adjusted for bubble)
+  add(svg, "path", {
+    d: "M5,2 Q19,2 24,11 Q19,20 5,20 Q11,11 5,2 Z",
+    "stroke-width": "2",
+  });
+  // Extra concave curve for XOR body
+  add(svg, "path", {
+    d: "M-1,2 Q-6,11 -1,20",
+    "stroke-width": "2",
+  });
+  // Inversion bubble
+  add(svg, "circle", { cx: "26.5", cy: "11", r: "2.5", "stroke-width": "2" });
+  // Output line
+  add(svg, "line", { x1: "29", y1: "11", x2: "32", y2: "11" });
+  return svg;
+}
+
 /** Lightning bolt for the Simulate toggle. */
 export function simulateIcon(): SVGSVGElement {
   const svg = makeSvg("0 0 24 24");

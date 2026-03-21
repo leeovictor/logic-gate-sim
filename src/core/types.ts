@@ -12,7 +12,7 @@ export interface PinDef {
   y: number;
 }
 
-export type ComponentType = "and-gate" | "or-gate" | "not-gate" | "switch" | "light";
+export type ComponentType = "and-gate" | "or-gate" | "not-gate" | "nand-gate" | "nor-gate" | "xor-gate" | "xnor-gate" | "switch" | "light";
 
 export type ToolMode = "select" | "wire" | ComponentType;
 
