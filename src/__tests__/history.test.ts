@@ -139,7 +139,7 @@ describe("History (Undo/Redo)", () => {
     });
 
     it("should be reversible (undo then redo)", () => {
-      const initialComponent = { id: "comp-0", type: "switch", position: { x: 10, y: 20 }, state: {} };
+      const initialComponent: EditorState["components"][number] = { id: "comp-0", type: "switch", position: { x: 10, y: 20 }, state: {} };
       state.components = [initialComponent];
       pushSnapshot(history, state);
 

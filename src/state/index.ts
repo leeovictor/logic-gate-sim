@@ -1,4 +1,5 @@
 export { createEditorState, endpointsEqual, resolveEndpoint } from "./editor-state";
+export type { EditorState } from "@/core/types";
 export {
   addComponent,
   setSelectedTool,
