@@ -139,3 +139,13 @@ export interface EditorState {
   _nextWireId: number;
   _nextJunctionId: number;
 }
+
+/** Snapshot of circuit-structural state for undo/redo */
+export interface CircuitSnapshot {
+  components: PlacedComponent[];
+  wireSegments: WireSegment[];
+  junctions: WireJunction[];
+  _nextId: number;
+  _nextWireId: number;
+  _nextJunctionId: number;
+}

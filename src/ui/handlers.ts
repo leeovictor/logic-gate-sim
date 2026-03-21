@@ -29,6 +29,8 @@ import type { HoveredPin } from "@/core/types";
 export interface HandlerContext {
   reEvaluate(structural?: boolean): void;
   save(): void;
+  pushSnapshot(): void;
+  popSnapshot(): void;
 }
 
 const DRAG_THRESHOLD = 3;
@@ -39,6 +41,7 @@ let dragOccurred = false;
 function handleNullToolClick(state: EditorState, point: Point, ctx: HandlerContext): void {
   const hit = hitTest(state, point);
   if (hit && hit.type === "switch") {
+    ctx.pushSnapshot();
     toggleSwitchValue(state, hit.id);
     ctx.reEvaluate(false); // not structural — don't rebuild nets or reset step sim
     ctx.save();
@@ -96,6 +99,7 @@ function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext, 
     } else {
       const wireHit = hitTestWire(state, point);
       if (wireHit) {
+        ctx.pushSnapshot();
         const junction = addJunction(state, wireHit.position);
         splitWireAtJunction(state, wireHit.wireId, junction.id);
         setPendingWireEndpoint(state, { type: "junction", junctionId: junction.id });
@@ -107,6 +111,7 @@ function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext, 
     // When pendingWire is set: check for pin/junction/wire hits to complete, or add waypoint on empty canvas
     if (pinHit) {
       // Complete the wire at a pin
+      ctx.pushSnapshot();
       const toEndpoint = { type: "pin", componentId: pinHit.componentId, pinIndex: pinHit.pinIndex } as const;
       addWireSegment(state, state.pendingWire, toEndpoint, state.pendingWaypoints);
       clearPendingWire(state);
@@ -116,6 +121,7 @@ function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext, 
       const wireHit = hitTestWire(state, point);
       if (wireHit) {
         // Complete the wire at a wire intersection (junction)
+        ctx.pushSnapshot();
         const junction = addJunction(state, wireHit.position);
         splitWireAtJunction(state, wireHit.wireId, junction.id);
         const toEndpoint = { type: "junction", junctionId: junction.id } as const;
@@ -133,6 +139,7 @@ function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext, 
 
 function handlePlaceComponent(state: EditorState, point: Point, ctx: HandlerContext): void {
   if (!state.selectedTool || state.selectedTool === "select" || state.selectedTool === "wire") return;
+  ctx.pushSnapshot();
   addComponent(state, state.selectedTool, point);
   clearSelection(state);
   ctx.reEvaluate();
@@ -162,7 +169,7 @@ export function handleCanvasClick(
   }
 }
 
-export function handleCanvasMouseDown(state: EditorState, e: MouseEvent): void {
+export function handleCanvasMouseDown(state: EditorState, e: MouseEvent, ctx: HandlerContext): void {
   if (state.selectedTool !== "select") return;
   const point: Point = { x: e.offsetX, y: e.offsetY };
   mouseDownPoint = point;
@@ -173,6 +180,7 @@ export function handleCanvasMouseDown(state: EditorState, e: MouseEvent): void {
     if (!state.selectedComponentIds.has(hit.id) && !e.ctrlKey) {
       selectComponent(state, hit.id);
     }
+    ctx.pushSnapshot();
     const offset: Point = {
       x: point.x - hit.position.x,
       y: point.y - hit.position.y,
@@ -186,6 +194,7 @@ export function handleCanvasMouseDown(state: EditorState, e: MouseEvent): void {
     if (!state.selectedJunctionIds.has(junctionId) && !e.ctrlKey) {
       selectJunction(state, junctionId);
     }
+    ctx.pushSnapshot();
     startJunctionDrag(state, junctionId, point);
     return;
   }
@@ -230,6 +239,9 @@ export function handleCanvasMouseUp(state: EditorState, e: MouseEvent, ctx: Hand
     endSelectionBox(state, e.ctrlKey);
   }
   if (state.dragging) {
+    if (!dragOccurred) {
+      ctx.popSnapshot();
+    }
     endDrag(state);
     if (dragOccurred) {
       ctx.save();

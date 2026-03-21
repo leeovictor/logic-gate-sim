@@ -36,3 +36,14 @@ export {
   updateSelectionBox,
   endSelectionBox,
 } from "./mutations";
+export {
+  createHistory,
+  captureSnapshot,
+  pushSnapshot,
+  popLastSnapshot,
+  undo,
+  redo,
+  canUndo,
+  canRedo,
+  type History,
+} from "./history";

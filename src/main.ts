@@ -11,6 +11,11 @@ import {
   toggleAutoStep,
   setStepInterval,
   resetStep,
+  createHistory,
+  pushSnapshot,
+  popLastSnapshot,
+  undo,
+  redo,
 } from "@/state";
 import { createToolbar } from "@/ui/toolbar";
 import { drawAll } from "@/ui/renderer";
@@ -21,6 +26,7 @@ import { loadFromUrl, copyShareUrl } from "@/storage/sharing";
 import { showToast } from "@/ui/toast";
 
 const state = createEditorState();
+const history = createHistory();
 
 // Try to load from URL first (shared circuit), then fall back to localStorage
 const urlLoaded = loadFromUrl();
@@ -80,7 +86,12 @@ function save() {
   saveCircuit(state);
 }
 
-const handlerCtx = { reEvaluate, save };
+const handlerCtx = {
+  reEvaluate,
+  save,
+  pushSnapshot: () => pushSnapshot(history, state),
+  popSnapshot: () => popLastSnapshot(history),
+};
 
 const stepCallbacks = {
   onModeToggle: () => {
@@ -161,7 +172,7 @@ canvas.addEventListener("contextmenu", (e) => {
 });
 
 canvas.addEventListener("mousedown", (e) => {
-  handleCanvasMouseDown(state, e);
+  handleCanvasMouseDown(state, e, handlerCtx);
 });
 
 canvas.addEventListener("mouseup", (e) => {
@@ -170,12 +181,31 @@ canvas.addEventListener("mouseup", (e) => {
 
 window.addEventListener("keydown", (e) => {
   if (e.key === "Delete") {
+    pushSnapshot(history, state);
     deleteSelected(state);
     reEvaluate();
     save();
   }
   if (e.key === "Escape") {
     clearPendingWire(state);
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+    e.preventDefault();
+    if (undo(history, state)) {
+      clearSelection(state);
+      clearPendingWire(state);
+      reEvaluate();
+      save();
+    }
+  }
+  if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) {
+    e.preventDefault();
+    if (redo(history, state)) {
+      clearSelection(state);
+      clearPendingWire(state);
+      reEvaluate();
+      save();
+    }
   }
 });
 
