@@ -1,9 +1,12 @@
-FEATURES PARA PLANEJAR
+# Backlog
 
-[] Histórico de comandos (Desfazer e Refazer) - Ctrl + Z , Ctrl + Y
-[] Zoom in/out e pan para navegação em circuitos grandes
-[] Modo de simulação com propagação de sinal por step ao invez de avaliação instantânea
-[] Suporte a mais tipos de portas lógicas (NAND, NOR, XOR, XNOR)
-[] Componentes adicionais: Flip-flops, multiplexadores, decodificadores
-[] Criação de subcircuitos para reutilização
+## Planned Features
 
+[x] Histórico de comandos (Desfazer e Refazer) - Ctrl + Z , Ctrl + Y
+[x] Modo de simulação com propagação de sinal por step ao invez de avaliação instantânea
+[x] Suporte a mais tipos de portas lógicas (NAND, NOR, XOR, XNOR)
+[ ] Zoom in/out e pan para navegação em circuitos grandes
+[ ] Componentes adicionais: Flip-flops, multiplexadores, decodificadores
+[ ] Criação de subcircuitos para reutilização
+[ ] QoL features: grid, alinhamento automático, agrupamento de componentes
+[ ] Exportação/Importação de circuitos (JSON, SVG)
