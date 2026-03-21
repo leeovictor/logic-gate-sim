@@ -4,9 +4,10 @@ import type { SerializedCircuitV2 } from "./persistence";
 import { isValidCircuit, migrateV1toV2 } from "./persistence";
 
 // Ordered array for ComponentType ↔ byte enum mapping (index = byte value)
-const COMPONENT_TYPES: ComponentType[] = ["and-gate", "or-gate", "not-gate", "switch", "light"];
+// IMPORTANT: only append new types at the end to preserve backward compatibility
+const COMPONENT_TYPES: ComponentType[] = ["and-gate", "or-gate", "not-gate", "switch", "light", "nand-gate", "nor-gate", "xor-gate", "xnor-gate"];
 
-const FORMAT_VERSION = 4;
+const FORMAT_VERSION = 5;
 
 // ---- Base64 URL-safe helpers ----
 
@@ -170,7 +171,7 @@ export function deserializeFromBinary(bytes: Uint8Array): SerializedCircuitV2 | 
     let offset = 0;
 
     const version = view.getUint8(offset);
-    if (version !== 3 && version !== 4) return null;
+    if (version !== 3 && version !== 4 && version !== 5) return null;
     offset++;
 
     const componentCount = view.getUint16(offset, true); offset += 2;
@@ -202,8 +203,8 @@ export function deserializeFromBinary(bytes: Uint8Array): SerializedCircuitV2 | 
       
       let waypoints: undefined | any[] = undefined;
       
-      // v4: read waypoints
-      if (version === 4) {
+      // v4+: read waypoints
+      if (version >= 4) {
         const waypointCount = view.getUint8(offset); offset++;
         if (waypointCount > 0) {
           waypoints = [];
@@ -276,14 +277,17 @@ export function importCircuitFromBase64(encoded: string): SerializedCircuitV2 | 
   try {
     const bytes = base64UrlToUint8Array(encoded);
 
+    // Supported binary format versions
+    const isSupportedVersion = (v: number) => v >= 3 && v <= FORMAT_VERSION;
+
     // Try new format: deflate-compressed binary
     const decompressed = decompressBytes(bytes);
-    if (decompressed !== null && decompressed[0] === FORMAT_VERSION) {
+    if (decompressed !== null && isSupportedVersion(decompressed[0])) {
       return deserializeFromBinary(decompressed);
     }
 
     // Try raw binary (uncompressed)
-    if (bytes[0] === FORMAT_VERSION) {
+    if (isSupportedVersion(bytes[0])) {
       return deserializeFromBinary(bytes);
     }
 

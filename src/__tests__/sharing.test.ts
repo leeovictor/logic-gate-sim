@@ -388,6 +388,120 @@ describe("generateShareUrl", () => {
   });
 });
 
+describe("round-trip sharing with all component types", () => {
+  it("round-trips circuit with NAND gate", () => {
+    const state = createEditorState();
+    addComponent(state, "nand-gate", { x: 100, y: 200 });
+
+    const encoded = exportCircuitToBase64(state);
+    const decoded = importCircuitFromBase64(encoded);
+
+    expect(decoded).not.toBeNull();
+    expect(decoded!.components).toHaveLength(1);
+    expect(decoded!.components[0].type).toBe("nand-gate");
+    expect(decoded!.components[0].position).toEqual({ x: 100, y: 200 });
+  });
+
+  it("round-trips circuit with NOR gate", () => {
+    const state = createEditorState();
+    addComponent(state, "nor-gate", { x: 150, y: 250 });
+
+    const encoded = exportCircuitToBase64(state);
+    const decoded = importCircuitFromBase64(encoded);
+
+    expect(decoded).not.toBeNull();
+    expect(decoded!.components).toHaveLength(1);
+    expect(decoded!.components[0].type).toBe("nor-gate");
+    expect(decoded!.components[0].position).toEqual({ x: 150, y: 250 });
+  });
+
+  it("round-trips circuit with XOR gate", () => {
+    const state = createEditorState();
+    addComponent(state, "xor-gate", { x: 200, y: 300 });
+
+    const encoded = exportCircuitToBase64(state);
+    const decoded = importCircuitFromBase64(encoded);
+
+    expect(decoded).not.toBeNull();
+    expect(decoded!.components).toHaveLength(1);
+    expect(decoded!.components[0].type).toBe("xor-gate");
+    expect(decoded!.components[0].position).toEqual({ x: 200, y: 300 });
+  });
+
+  it("round-trips circuit with XNOR gate", () => {
+    const state = createEditorState();
+    addComponent(state, "xnor-gate", { x: 250, y: 350 });
+
+    const encoded = exportCircuitToBase64(state);
+    const decoded = importCircuitFromBase64(encoded);
+
+    expect(decoded).not.toBeNull();
+    expect(decoded!.components).toHaveLength(1);
+    expect(decoded!.components[0].type).toBe("xnor-gate");
+    expect(decoded!.components[0].position).toEqual({ x: 250, y: 350 });
+  });
+
+  it("round-trips circuit with all 9 component types", () => {
+    const state = createEditorState();
+    addComponent(state, "and-gate", { x: 0, y: 0 });
+    addComponent(state, "or-gate", { x: 100, y: 0 });
+    addComponent(state, "not-gate", { x: 200, y: 0 });
+    addComponent(state, "switch", { x: 300, y: 0 });
+    addComponent(state, "light", { x: 400, y: 0 });
+    addComponent(state, "nand-gate", { x: 0, y: 100 });
+    addComponent(state, "nor-gate", { x: 100, y: 100 });
+    addComponent(state, "xor-gate", { x: 200, y: 100 });
+    addComponent(state, "xnor-gate", { x: 300, y: 100 });
+
+    const encoded = exportCircuitToBase64(state);
+    const decoded = importCircuitFromBase64(encoded);
+
+    expect(decoded).not.toBeNull();
+    expect(decoded!.components).toHaveLength(9);
+    expect(decoded!.components[0].type).toBe("and-gate");
+    expect(decoded!.components[5].type).toBe("nand-gate");
+    expect(decoded!.components[6].type).toBe("nor-gate");
+    expect(decoded!.components[7].type).toBe("xor-gate");
+    expect(decoded!.components[8].type).toBe("xnor-gate");
+  });
+
+  it("round-trips circuit with new gates and wires", () => {
+    const state = createEditorState();
+    const sw = addComponent(state, "switch", { x: 0, y: 0 });
+    const nand = addComponent(state, "nand-gate", { x: 200, y: 0 });
+    addWire(
+      state,
+      { type: "pin", componentId: sw.id, pinIndex: 0 },
+      { type: "pin", componentId: nand.id, pinIndex: 0 },
+    );
+
+    const encoded = exportCircuitToBase64(state);
+    const decoded = importCircuitFromBase64(encoded);
+
+    expect(decoded).not.toBeNull();
+    expect(decoded!.components).toHaveLength(2);
+    expect(decoded!.components[1].type).toBe("nand-gate");
+    expect(decoded!.wireSegments).toHaveLength(1);
+  });
+
+  it("full share URL round-trip with new gates", () => {
+    const state = createEditorState();
+    addComponent(state, "xor-gate", { x: 100, y: 100 });
+    addComponent(state, "xnor-gate", { x: 300, y: 100 });
+
+    const url = generateShareUrl(state);
+    const params = new URLSearchParams(url.split("?")[1]);
+    const encoded = params.get("c");
+
+    expect(encoded).not.toBeNull();
+    const decoded = importCircuitFromBase64(encoded!);
+    expect(decoded).not.toBeNull();
+    expect(decoded!.components).toHaveLength(2);
+    expect(decoded!.components[0].type).toBe("xor-gate");
+    expect(decoded!.components[1].type).toBe("xnor-gate");
+  });
+});
+
 describe("loadFromUrl", () => {
   it("returns null when no query param", () => {
     const result = loadFromUrl();
