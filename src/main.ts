@@ -27,6 +27,7 @@ import { saveCircuit, loadCircuit } from "@/storage/persistence";
 import { loadFromUrl, copyShareUrl } from "@/storage/sharing";
 import { showToast } from "@/ui/toast";
 
+
 const state = createEditorState();
 const history = createHistory();
 
@@ -248,6 +249,7 @@ canvas.addEventListener("mouseleave", () => {
 canvas.addEventListener("wheel", (e) => {
   handleWheel(state, e);
 }, { passive: false });
+
 
 function render() {
   drawAll(ctx, state, canvas.width, canvas.height);
