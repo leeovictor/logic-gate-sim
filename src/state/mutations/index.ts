@@ -49,6 +49,7 @@ export {
   setStepInterval,
   resetStep,
   toggleSimulation,
+  setTheme,
 } from "./simulation";
 
 export {

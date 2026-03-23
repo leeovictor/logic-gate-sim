@@ -1,4 +1,5 @@
 import type { ComponentDef } from "../types";
+import { getThemeColors } from "../theme";
 
 export const lightComponent: ComponentDef = {
   type: "light",
@@ -25,9 +26,10 @@ export const lightComponent: ComponentDef = {
     const lineLen = w - radius * 2;
     const centerX = x + lineLen + radius;
     const centerY = y + h / 2;
+    const colors = getThemeColors();
 
     // Input line
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(x, y + h / 2);
@@ -37,8 +39,8 @@ export const lightComponent: ComponentDef = {
     // Circle body (bulb)
     const isError = value === 'E';
     const isOn = value === 1;
-    ctx.fillStyle = isError ? "#f87171" : isOn ? "#22c55e" : "#d1d5db";
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.fillStyle = isError ? "#f87171" : isOn ? "#22c55e" : colors.inactiveSignalColor;
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
@@ -46,7 +48,7 @@ export const lightComponent: ComponentDef = {
     ctx.stroke();
 
     // Value text
-    ctx.fillStyle = "#1a1a1a";
+    ctx.fillStyle = colors.textColor;
     ctx.font = "bold 13px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";

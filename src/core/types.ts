@@ -126,6 +126,7 @@ export interface Viewport {
 }
 
 export interface EditorState {
+  theme: "light" | "dark";
   selectedTool: ToolMode | null;
   components: PlacedComponent[];
   cursorPosition: Point | null;

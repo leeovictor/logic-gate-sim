@@ -1,4 +1,5 @@
 import type { ComponentDef } from "../types";
+import { getThemeColors } from "../theme";
 
 export const norGate: ComponentDef = {
   type: "nor-gate",
@@ -21,9 +22,10 @@ export const norGate: ComponentDef = {
     const lineLen = 12;
     const curveIn = 15; // depth of the concave left curve
     const bubbleR = 5;
+    const colors = getThemeColors();
 
     // Input lines (two lines on the left)
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(x, y + h * 0.25);
@@ -33,8 +35,8 @@ export const norGate: ComponentDef = {
     ctx.stroke();
 
     // Gate body: concave left curve + two convex arcs meeting at right tip
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.fillStyle = colors.gateFillColor;
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 3;
     ctx.beginPath();
     // Start at top-left
@@ -50,8 +52,8 @@ export const norGate: ComponentDef = {
     ctx.stroke();
 
     // Inversion bubble
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.fillStyle = colors.gateFillColor;
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(x + w - lineLen - bubbleR - 1, y + halfH, bubbleR, 0, Math.PI * 2);
@@ -59,7 +61,7 @@ export const norGate: ComponentDef = {
     ctx.stroke();
 
     // Output line (right side)
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(x + w - lineLen, y + halfH);

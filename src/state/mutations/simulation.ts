@@ -1,5 +1,6 @@
 import type { EditorState, SimulationMode } from "@/core/types";
 import { stepCircuit, resetStepSimulation, startAutoStep, stopAutoStep } from "@/core/simulation";
+import { setCurrentTheme } from "@/core/theme";
 
 export function setSimulationMode(state: EditorState, mode: SimulationMode): void {
   if (state.simulationMode === mode) return;
@@ -46,4 +47,10 @@ export function toggleSimulation(state: EditorState): void {
     stopAutoStep(state);
     resetStepSimulation(state);
   }
+}
+
+export function setTheme(state: EditorState, theme: "light" | "dark"): void {
+  state.theme = theme;
+  setCurrentTheme(theme);
+  document.documentElement.dataset.theme = theme;
 }

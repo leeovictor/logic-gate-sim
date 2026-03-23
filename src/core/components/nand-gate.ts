@@ -1,4 +1,5 @@
 import type { ComponentDef } from "../types";
+import { getThemeColors } from "../theme";
 
 export const nandGate: ComponentDef = {
   type: "nand-gate",
@@ -21,9 +22,10 @@ export const nandGate: ComponentDef = {
     const halfH = h / 2;
     const lineLen = 12;
     const bubbleR = 5;
+    const colors = getThemeColors();
 
     // Input lines (two lines on the left)
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(x, y + h * 0.25);
@@ -33,8 +35,8 @@ export const nandGate: ComponentDef = {
     ctx.stroke();
 
     // Gate body: flat left + arc right (same as AND)
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.fillStyle = colors.gateFillColor;
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(x + lineLen, y);
@@ -46,8 +48,8 @@ export const nandGate: ComponentDef = {
     ctx.stroke();
 
     // Inversion bubble
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.fillStyle = colors.gateFillColor;
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(x + halfW - 3 + halfH + bubbleR, y + halfH, bubbleR, 0, Math.PI * 2);
@@ -55,7 +57,7 @@ export const nandGate: ComponentDef = {
     ctx.stroke();
 
     // Output line (right side)
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(x + halfW - 3 + halfH + bubbleR * 2, y + halfH);

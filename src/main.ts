@@ -17,6 +17,7 @@ import {
   undo,
   redo,
   resetViewport,
+  setTheme,
 } from "@/state";
 import { createToolbar } from "@/ui/toolbar";
 import { drawAll } from "@/ui/renderer";
@@ -28,6 +29,12 @@ import { showToast } from "@/ui/toast";
 
 const state = createEditorState();
 const history = createHistory();
+
+// Load persisted theme preference
+const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+if (savedTheme === "dark" || savedTheme === "light") {
+  setTheme(state, savedTheme);
+}
 
 // Try to load from URL first (shared circuit), then fall back to localStorage
 const urlLoaded = loadFromUrl();
@@ -149,6 +156,11 @@ const toolbar = createToolbar(
     }
   },
   stepCallbacks,
+  (theme) => {
+    setTheme(state, theme);
+    localStorage.setItem("theme", theme);
+  },
+  state.theme,
 );
 document.body.prepend(toolbar);
 

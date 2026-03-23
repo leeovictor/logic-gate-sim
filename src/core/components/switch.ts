@@ -1,4 +1,5 @@
 import type { ComponentDef } from "../types";
+import { getThemeColors } from "../theme";
 
 export const switchComponent: ComponentDef = {
   type: "switch",
@@ -18,10 +19,11 @@ export const switchComponent: ComponentDef = {
     const value = state?.value ?? 0;
     const bodyW = 30;
     const lineLen = w - bodyW;
+    const colors = getThemeColors();
 
     // Body rectangle
-    ctx.fillStyle = value ? "#22c55e" : "#d1d5db";
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.fillStyle = value ? "#22c55e" : colors.inactiveSignalColor;
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.rect(x, y, bodyW, h);
@@ -29,14 +31,14 @@ export const switchComponent: ComponentDef = {
     ctx.stroke();
 
     // Value text
-    ctx.fillStyle = "#1a1a1a";
+    ctx.fillStyle = colors.textColor;
     ctx.font = "bold 13px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(String(value ? 1 : 0), x + bodyW / 2, y + h / 2);
 
     // Output line
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(x + bodyW, y + h / 2);

@@ -33,6 +33,7 @@ export {
   setStepInterval,
   resetStep,
   toggleSimulation,
+  setTheme,
   startSelectionBox,
   updateSelectionBox,
   endSelectionBox,
