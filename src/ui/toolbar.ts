@@ -12,6 +12,8 @@ import {
   switchIcon,
   lightIcon,
   simulateIcon,
+  sunIcon,
+  moonIcon,
 } from "./toolbar-icons";
 
 export interface StepControls {
@@ -209,6 +211,31 @@ function createToolGroup(
 
   wrapper.appendChild(dropdownPanel);
   return controller;
+}
+
+function createThemeToggleButton(
+  currentTheme: "light" | "dark",
+  onToggle: (theme: "light" | "dark") => void,
+): HTMLButtonElement {
+  const btn = document.createElement("button");
+  let theme = currentTheme;
+
+  function update() {
+    btn.innerHTML = "";
+    btn.appendChild(theme === "dark" ? sunIcon() : moonIcon());
+    btn.title = theme === "dark" ? "Tema Claro" : "Tema Escuro";
+    btn.setAttribute("aria-label", theme === "dark" ? "Tema Claro" : "Tema Escuro");
+  }
+
+  update();
+
+  btn.addEventListener("click", () => {
+    theme = theme === "dark" ? "light" : "dark";
+    update();
+    onToggle(theme);
+  });
+
+  return btn;
 }
 
 function createSimToggle(
@@ -413,6 +440,8 @@ export function createToolbar(
   events: EventTarget,
   onShare?: () => void,
   stepControls?: StepControls,
+  onThemeToggle?: (theme: "light" | "dark") => void,
+  initialTheme?: "light" | "dark",
 ): HTMLDivElement {
   const toolbar = document.createElement("div");
   toolbar.className = "toolbar";
@@ -464,6 +493,14 @@ export function createToolbar(
   if (stepControls) {
     stepPanel = createStepPanel(stepControls);
     toolbar.appendChild(stepPanel);
+  }
+
+  if (onThemeToggle) {
+    const themeSeparator = document.createElement("div");
+    themeSeparator.className = "separator";
+    toolbar.appendChild(themeSeparator);
+    const themeBtn = createThemeToggleButton(initialTheme ?? "light", onThemeToggle);
+    toolbar.appendChild(themeBtn);
   }
 
   events.addEventListener("stepupdate", (e: Event) => {

@@ -1,4 +1,5 @@
 import type { ComponentDef } from "../types";
+import { getThemeColors } from "../theme";
 
 export const xorGate: ComponentDef = {
   type: "xor-gate",
@@ -20,9 +21,10 @@ export const xorGate: ComponentDef = {
     const halfH = h / 2;
     const lineLen = 12;
     const curveIn = 15; // depth of the concave left curve
+    const colors = getThemeColors();
 
     // Input lines (two lines on the left)
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(x, y + h * 0.25);
@@ -32,8 +34,8 @@ export const xorGate: ComponentDef = {
     ctx.stroke();
 
     // Gate body: concave left curve + two convex arcs meeting at right tip
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.fillStyle = colors.gateFillColor;
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 3;
     ctx.beginPath();
     // Start at top-left
@@ -49,7 +51,7 @@ export const xorGate: ComponentDef = {
     ctx.stroke();
 
     // Extra concave curve for XOR (to the left of main curve)
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(x + lineLen - 6, y);
@@ -57,7 +59,7 @@ export const xorGate: ComponentDef = {
     ctx.stroke();
 
     // Output line (right side)
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(x + w - lineLen, y + halfH);

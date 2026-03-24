@@ -1,4 +1,5 @@
 import type { ComponentDef } from "../types";
+import { getThemeColors } from "../theme";
 
 export const notGate: ComponentDef = {
   type: "not-gate",
@@ -20,9 +21,10 @@ export const notGate: ComponentDef = {
     const lineLen = 10;
     const bubbleR = 5;
     const triRight = w - lineLen - bubbleR * 2; // right vertex of triangle
+    const colors = getThemeColors();
 
     // Input line (left side)
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(x, y + halfH);
@@ -30,8 +32,8 @@ export const notGate: ComponentDef = {
     ctx.stroke();
 
     // Triangle body
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.fillStyle = colors.gateFillColor;
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(x + lineLen, y);
@@ -42,8 +44,8 @@ export const notGate: ComponentDef = {
     ctx.stroke();
 
     // Inversion bubble
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.fillStyle = colors.gateFillColor;
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(x + triRight + bubbleR, y + halfH, bubbleR, 0, Math.PI * 2);
@@ -51,7 +53,7 @@ export const notGate: ComponentDef = {
     ctx.stroke();
 
     // Output line (right side)
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(x + triRight + bubbleR * 2, y + halfH);

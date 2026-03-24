@@ -1,5 +1,6 @@
 import type { EditorState, PlacedComponent, Point, PinDef, WireEndpoint } from "@/core/types";
 import { getComponentDef } from "@/core/registry";
+import { getThemeColors } from "@/core/theme";
 
 export function hitTest(state: EditorState, point: Point): PlacedComponent | null {
   for (let i = state.components.length - 1; i >= 0; i--) {
@@ -25,7 +26,9 @@ export function drawAll(
   width: number,
   height: number,
 ): void {
-  ctx.clearRect(0, 0, width, height);
+  const colors = getThemeColors();
+  ctx.fillStyle = colors.canvasBackground;
+  ctx.fillRect(0, 0, width, height);
 
   ctx.save();
   ctx.translate(state.viewport.panX, state.viewport.panY);
@@ -96,6 +99,7 @@ function getWireSignal(state: EditorState, wireId: string): 0 | 1 | 'E' {
 }
 
 function drawWireSegments(ctx: CanvasRenderingContext2D, state: EditorState): void {
+  const colors = getThemeColors();
   for (const wire of state.wireSegments) {
     const from = getEndpointPosition(state, wire.from);
     const to = getEndpointPosition(state, wire.to);
@@ -119,7 +123,7 @@ function drawWireSegments(ctx: CanvasRenderingContext2D, state: EditorState): vo
         ctx.lineWidth = 2;
       }
     } else {
-      ctx.strokeStyle = "#1a1a1a";
+      ctx.strokeStyle = colors.wireDefaultColor;
       ctx.lineWidth = 2;
     }
     drawOrthogonalWire(ctx, from, wire.waypoints, to);
@@ -128,7 +132,7 @@ function drawWireSegments(ctx: CanvasRenderingContext2D, state: EditorState): vo
     // Draw free endpoints as small open circles
     if (wire.from.type === "point") {
       ctx.save();
-      ctx.strokeStyle = isSelected ? "#3b82f6" : "#1a1a1a";
+      ctx.strokeStyle = isSelected ? "#3b82f6" : colors.wireDefaultColor;
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.arc(from.x, from.y, 4, 0, Math.PI * 2);
@@ -137,7 +141,7 @@ function drawWireSegments(ctx: CanvasRenderingContext2D, state: EditorState): vo
     }
     if (wire.to.type === "point") {
       ctx.save();
-      ctx.strokeStyle = isSelected ? "#3b82f6" : "#1a1a1a";
+      ctx.strokeStyle = isSelected ? "#3b82f6" : colors.wireDefaultColor;
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.arc(to.x, to.y, 4, 0, Math.PI * 2);
@@ -152,7 +156,7 @@ function drawWireSegments(ctx: CanvasRenderingContext2D, state: EditorState): vo
     ctx.save();
     ctx.beginPath();
     ctx.arc(junction.position.x, junction.position.y, isSelected ? 7 : 5, 0, Math.PI * 2);
-    ctx.fillStyle = isSelected ? "#3b82f6" : "#1a1a1a";
+    ctx.fillStyle = isSelected ? "#3b82f6" : colors.junctionColor;
     ctx.fill();
     ctx.restore();
   }
@@ -213,8 +217,9 @@ function drawPendingWire(ctx: CanvasRenderingContext2D, state: EditorState): voi
   const from = getEndpointPosition(state, state.pendingWire);
   if (!from) return;
   
+  const colors = getThemeColors();
   ctx.save();
-  ctx.strokeStyle = "rgba(0, 0, 0, 0.6)";
+  ctx.strokeStyle = colors.pendingWireColor;
   ctx.lineWidth = 2;
   ctx.setLineDash([6, 3]);
   
@@ -243,6 +248,8 @@ function drawStepOverlay(
 
   const { stepCount, stable } = state.stepSimulation;
 
+  const colors = getThemeColors();
+
   ctx.save();
 
   // Step counter — top right
@@ -259,7 +266,7 @@ function drawStepOverlay(
   const pillW = metrics.width + padding * 2;
   const pillH = 22;
 
-  ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+  ctx.fillStyle = colors.overlayBg;
   if (typeof ctx.roundRect === "function") {
     ctx.beginPath();
     ctx.roundRect(pillX, pillY, pillW, pillH, 6);

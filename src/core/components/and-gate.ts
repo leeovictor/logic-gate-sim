@@ -1,4 +1,5 @@
 import type { ComponentDef } from "../types";
+import { getThemeColors } from "../theme";
 
 export const andGate: ComponentDef = {
   type: "and-gate",
@@ -20,9 +21,10 @@ export const andGate: ComponentDef = {
     const halfW = w / 2;
     const halfH = h / 2;
     const lineLen = 12;
+    const colors = getThemeColors();
 
     // Input lines (two lines on the left)
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(x, y + h * 0.25);
@@ -32,8 +34,8 @@ export const andGate: ComponentDef = {
     ctx.stroke();
 
     // Gate body: flat left + arc right
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.fillStyle = colors.gateFillColor;
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(x + lineLen, y);
@@ -45,7 +47,7 @@ export const andGate: ComponentDef = {
     ctx.stroke();
 
     // Output line (right side)
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(x + halfW + halfH, y + halfH);

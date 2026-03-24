@@ -3,6 +3,7 @@ import { getComponentDef } from "@/core/registry";
 
 export function createEditorState(): EditorState {
   return {
+    theme: "light",
     selectedTool: null,
     components: [],
     cursorPosition: null,
