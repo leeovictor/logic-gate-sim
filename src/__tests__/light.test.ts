@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { lightComponent } from "@/core/components/light";
-import { createEditorState, addComponent } from "@/state";
+import { addComponent, createEditorState } from "@/state";
 
 describe("light component", () => {
   it("tem type, label, width, height corretos", () => {

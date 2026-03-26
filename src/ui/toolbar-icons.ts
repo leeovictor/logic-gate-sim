@@ -37,12 +37,18 @@ export function wireIcon(): SVGSVGElement {
   const svg = makeSvg("0 0 24 24");
   add(svg, "line", { x1: "4", y1: "20", x2: "20", y2: "4" });
   add(svg, "circle", {
-    cx: "4", cy: "20", r: "2.5",
-    fill: "currentColor", stroke: "none",
+    cx: "4",
+    cy: "20",
+    r: "2.5",
+    fill: "currentColor",
+    stroke: "none",
   });
   add(svg, "circle", {
-    cx: "20", cy: "4", r: "2.5",
-    fill: "currentColor", stroke: "none",
+    cx: "20",
+    cy: "4",
+    r: "2.5",
+    fill: "currentColor",
+    stroke: "none",
   });
   return svg;
 }
@@ -112,7 +118,11 @@ export function notGateIcon(): SVGSVGElement {
 export function switchIcon(): SVGSVGElement {
   const svg = makeSvg("0 0 24 20");
   add(svg, "rect", {
-    x: "2", y: "4", width: "16", height: "12", rx: "2",
+    x: "2",
+    y: "4",
+    width: "16",
+    height: "12",
+    rx: "2",
     "stroke-width": "2",
   });
   add(svg, "line", { x1: "18", y1: "10", x2: "24", y2: "10" });

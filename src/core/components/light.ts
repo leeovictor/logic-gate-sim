@@ -1,18 +1,16 @@
-import type { ComponentDef } from "../types";
 import { getThemeColors } from "../theme";
+import type { ComponentDef } from "../types";
 
 export const lightComponent: ComponentDef = {
   type: "light",
   label: "Light",
   width: 40,
   height: 30,
-  pins: [
-    { direction: "input", x: 0, y: 15 },
-  ],
+  pins: [{ direction: "input", x: 0, y: 15 }],
   defaultState: { value: 0 },
   evaluate(inputs, state) {
-    if (inputs.includes('E')) {
-      state.value = 'E';
+    if (inputs.includes("E")) {
+      state.value = "E";
       return [];
     }
     state.value = inputs[0] ? 1 : 0;
@@ -37,9 +35,13 @@ export const lightComponent: ComponentDef = {
     ctx.stroke();
 
     // Circle body (bulb)
-    const isError = value === 'E';
+    const isError = value === "E";
     const isOn = value === 1;
-    ctx.fillStyle = isError ? "#f87171" : isOn ? "#22c55e" : colors.inactiveSignalColor;
+    ctx.fillStyle = isError
+      ? "#f87171"
+      : isOn
+        ? "#22c55e"
+        : colors.inactiveSignalColor;
     ctx.strokeStyle = colors.strokeColor;
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -52,6 +54,6 @@ export const lightComponent: ComponentDef = {
     ctx.font = "bold 13px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(String(isError ? 'E' : (isOn ? 1 : 0)), centerX, centerY);
+    ctx.fillText(String(isError ? "E" : isOn ? 1 : 0), centerX, centerY);
   },
 };

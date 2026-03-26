@@ -1,11 +1,11 @@
-import { defineConfig } from 'vite'
-import path from 'path'
+import path from "node:path";
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: '/logic-gate-sim/',
+  base: "/logic-gate-sim/",
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
-})
+});

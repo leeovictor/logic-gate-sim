@@ -1,13 +1,13 @@
-import type { ComponentType, ComponentDef } from "@/core/types";
 import { andGate } from "@/core/components/and-gate";
-import { orGate } from "@/core/components/or-gate";
-import { notGate } from "@/core/components/not-gate";
+import { lightComponent } from "@/core/components/light";
 import { nandGate } from "@/core/components/nand-gate";
 import { norGate } from "@/core/components/nor-gate";
-import { xorGate } from "@/core/components/xor-gate";
-import { xnorGate } from "@/core/components/xnor-gate";
+import { notGate } from "@/core/components/not-gate";
+import { orGate } from "@/core/components/or-gate";
 import { switchComponent } from "@/core/components/switch";
-import { lightComponent } from "@/core/components/light";
+import { xnorGate } from "@/core/components/xnor-gate";
+import { xorGate } from "@/core/components/xor-gate";
+import type { ComponentDef, ComponentType } from "@/core/types";
 
 const registry = new Map<ComponentType, ComponentDef>([
   ["and-gate", andGate],

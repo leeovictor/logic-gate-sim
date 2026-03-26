@@ -1,14 +1,12 @@
-import type { ComponentDef } from "../types";
 import { getThemeColors } from "../theme";
+import type { ComponentDef } from "../types";
 
 export const switchComponent: ComponentDef = {
   type: "switch",
   label: "Switch",
   width: 40,
   height: 30,
-  pins: [
-    { direction: "output", x: 40, y: 15 },
-  ],
+  pins: [{ direction: "output", x: 40, y: 15 }],
   defaultState: { value: 0 },
   evaluate(_inputs, state) {
     return [state.value ? 1 : 0];
@@ -18,7 +16,7 @@ export const switchComponent: ComponentDef = {
     const h = this.height;
     const value = state?.value ?? 0;
     const bodyW = 30;
-    const lineLen = w - bodyW;
+    const _lineLen = w - bodyW;
     const colors = getThemeColors();
 
     // Body rectangle

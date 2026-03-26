@@ -7,13 +7,17 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "format": "biome format --write .",
+    "lint": "biome lint --write .",
+    "check": "biome check --write ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@biomejs/biome": "^2.4.9",
     "jsdom": "^29.0.1",
     "typescript": "^5.9.3",
     "vite": "^8.0.1",

@@ -1,8 +1,11 @@
-import type { EditorState, PlacedComponent, Point, PinDef, WireEndpoint } from "@/core/types";
 import { getComponentDef } from "@/core/registry";
-import { getPinPosition, getEndpointPosition } from "./renderer";
+import type { EditorState, PlacedComponent, Point } from "@/core/types";
+import { getEndpointPosition, getPinPosition } from "./renderer";
 
-export function hitTest(state: EditorState, point: Point): PlacedComponent | null {
+export function hitTest(
+  state: EditorState,
+  point: Point,
+): PlacedComponent | null {
   for (let i = state.components.length - 1; i >= 0; i--) {
     const comp = state.components[i];
     const def = getComponentDef(comp.type);
@@ -45,12 +48,14 @@ export function hitTestWire(
       const p1 = pathPoints[i];
       const p2 = pathPoints[i + 1];
       const { distance, closest } = pointToLineSegmentDistance(point, p1, p2);
-      
+
       if (distance < bestDist) {
         bestDist = distance;
         bestResult = {
           wireId: wire.id,
-          t: (i + (closest === p1 ? 0 : closest === p2 ? 1 : 0.5)) / (pathPoints.length - 1),
+          t:
+            (i + (closest === p1 ? 0 : closest === p2 ? 1 : 0.5)) /
+            (pathPoints.length - 1),
           position: closest,
         };
       }
@@ -76,7 +81,10 @@ function pointToLineSegmentDistance(
   }
 
   // Project point onto the line, clamped to segment
-  const t = Math.max(0, Math.min(1, ((point.x - p1.x) * dx + (point.y - p1.y) * dy) / lengthSq));
+  const t = Math.max(
+    0,
+    Math.min(1, ((point.x - p1.x) * dx + (point.y - p1.y) * dy) / lengthSq),
+  );
   const closest: Point = {
     x: p1.x + t * dx,
     y: p1.y + t * dy,

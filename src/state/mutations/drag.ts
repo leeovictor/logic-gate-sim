@@ -1,6 +1,9 @@
 import type { EditorState, Point } from "@/core/types";
 
-function collectWaypointOffsets(state: EditorState, clickPoint: Point): Map<string, Point[]> {
+function collectWaypointOffsets(
+  state: EditorState,
+  clickPoint: Point,
+): Map<string, Point[]> {
   const waypointOffsets = new Map<string, Point[]>();
   for (const wireId of state.selectedWireIds) {
     const wire = state.wireSegments.find((w) => w.id === wireId);
@@ -16,7 +19,11 @@ function collectWaypointOffsets(state: EditorState, clickPoint: Point): Map<stri
   return waypointOffsets;
 }
 
-export function startDrag(state: EditorState, componentId: string, offset: Point): void {
+export function startDrag(
+  state: EditorState,
+  componentId: string,
+  offset: Point,
+): void {
   const offsets = new Map<string, Point>();
   const junctionOffsets = new Map<string, Point>();
   let waypointOffsets = new Map<string, Point[]>();
@@ -46,10 +53,20 @@ export function startDrag(state: EditorState, componentId: string, offset: Point
   } else {
     offsets.set(componentId, offset);
   }
-  state.dragging = { componentId, offset, offsets, junctionOffsets, waypointOffsets };
+  state.dragging = {
+    componentId,
+    offset,
+    offsets,
+    junctionOffsets,
+    waypointOffsets,
+  };
 }
 
-export function startJunctionDrag(state: EditorState, junctionId: string, clickPoint: Point): void {
+export function startJunctionDrag(
+  state: EditorState,
+  junctionId: string,
+  clickPoint: Point,
+): void {
   const offsets = new Map<string, Point>();
   const junctionOffsets = new Map<string, Point>();
   let waypointOffsets = new Map<string, Point[]>();
@@ -80,7 +97,13 @@ export function startJunctionDrag(state: EditorState, junctionId: string, clickP
       });
     }
   }
-  state.dragging = { componentId: junctionId, offset: { x: 0, y: 0 }, offsets, junctionOffsets, waypointOffsets };
+  state.dragging = {
+    componentId: junctionId,
+    offset: { x: 0, y: 0 },
+    offsets,
+    junctionOffsets,
+    waypointOffsets,
+  };
 }
 
 export function updateDrag(state: EditorState, cursor: Point): void {

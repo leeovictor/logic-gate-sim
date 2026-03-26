@@ -1,5 +1,5 @@
-import type { ComponentDef } from "../types";
 import { getThemeColors } from "../theme";
+import type { ComponentDef } from "../types";
 
 export const notGate: ComponentDef = {
   type: "not-gate",
@@ -7,11 +7,11 @@ export const notGate: ComponentDef = {
   width: 60,
   height: 50,
   pins: [
-    { direction: "input",  x: 0,  y: 25 },
+    { direction: "input", x: 0, y: 25 },
     { direction: "output", x: 60, y: 25 },
   ],
   evaluate(inputs) {
-    if (inputs.includes('E')) return ['E'];
+    if (inputs.includes("E")) return ["E"];
     return [inputs[0] ? 0 : 1];
   },
   draw(ctx, x, y) {

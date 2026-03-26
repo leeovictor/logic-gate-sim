@@ -1,33 +1,32 @@
-import type { EditorState, Point } from "@/core/types";
+import type { EditorState, HoveredPin, Point } from "@/core/types";
 import {
   addComponent,
-  selectComponent,
-  toggleComponentSelection,
-  clearSelection,
-  selectWire,
-  toggleWireSelection,
-  selectJunction,
-  toggleJunctionSelection,
-  addWireSegment,
   addJunction,
-  splitWireAtJunction,
-  setPendingWireEndpoint,
   addPendingWaypoint,
+  addWireSegment,
   clearPendingWire,
-  toggleSwitchValue,
-  startDrag,
-  startJunctionDrag,
-  updateDrag,
+  clearSelection,
   endDrag,
-  startSelectionBox,
-  updateSelectionBox,
   endSelectionBox,
   panViewport,
+  screenToWorld,
+  selectComponent,
+  selectJunction,
+  selectWire,
+  setPendingWireEndpoint,
+  splitWireAtJunction,
+  startDrag,
+  startJunctionDrag,
+  startSelectionBox,
+  toggleComponentSelection,
+  toggleJunctionSelection,
+  toggleSwitchValue,
+  toggleWireSelection,
+  updateDrag,
+  updateSelectionBox,
   zoomViewport,
 } from "@/state";
-import { screenToWorld } from "@/state";
-import { hitTest, hitTestPin, hitTestWire, hitTestJunction } from "./hit-test";
-import type { HoveredPin } from "@/core/types";
+import { hitTest, hitTestJunction, hitTestPin, hitTestWire } from "./hit-test";
 
 export interface HandlerContext {
   reEvaluate(structural?: boolean): void;
@@ -72,7 +71,11 @@ export function handleWheel(state: EditorState, e: WheelEvent): void {
   zoomViewport(state, factor, { x: e.offsetX, y: e.offsetY });
 }
 
-function handleNullToolClick(state: EditorState, point: Point, ctx: HandlerContext): void {
+function handleNullToolClick(
+  state: EditorState,
+  point: Point,
+  ctx: HandlerContext,
+): void {
   const hit = hitTest(state, point);
   if (hit && hit.type === "switch") {
     ctx.pushSnapshot();
@@ -82,7 +85,11 @@ function handleNullToolClick(state: EditorState, point: Point, ctx: HandlerConte
   }
 }
 
-function handleSelectClick(state: EditorState, point: Point, e: MouseEvent): void {
+function handleSelectClick(
+  state: EditorState,
+  point: Point,
+  e: MouseEvent,
+): void {
   const hit = hitTest(state, point);
   if (hit) {
     if (e.ctrlKey) {
@@ -118,7 +125,12 @@ function handleSelectClick(state: EditorState, point: Point, e: MouseEvent): voi
   }
 }
 
-function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext, e: MouseEvent): void {
+function handleWireClick(
+  state: EditorState,
+  point: Point,
+  ctx: HandlerContext,
+  e: MouseEvent,
+): void {
   if (e.button === 2) {
     clearPendingWire(state);
     return;
@@ -129,16 +141,27 @@ function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext, 
   if (state.pendingWire === null) {
     // First click: start a wire
     if (pinHit) {
-      setPendingWireEndpoint(state, { type: "pin", componentId: pinHit.componentId, pinIndex: pinHit.pinIndex });
+      setPendingWireEndpoint(state, {
+        type: "pin",
+        componentId: pinHit.componentId,
+        pinIndex: pinHit.pinIndex,
+      });
     } else {
       const wireHit = hitTestWire(state, point);
       if (wireHit) {
         ctx.pushSnapshot();
         const junction = addJunction(state, wireHit.position);
         splitWireAtJunction(state, wireHit.wireId, junction.id);
-        setPendingWireEndpoint(state, { type: "junction", junctionId: junction.id });
+        setPendingWireEndpoint(state, {
+          type: "junction",
+          junctionId: junction.id,
+        });
       } else {
-        setPendingWireEndpoint(state, { type: "point", x: point.x, y: point.y });
+        setPendingWireEndpoint(state, {
+          type: "point",
+          x: point.x,
+          y: point.y,
+        });
       }
     }
   } else {
@@ -146,8 +169,17 @@ function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext, 
     if (pinHit) {
       // Complete the wire at a pin
       ctx.pushSnapshot();
-      const toEndpoint = { type: "pin", componentId: pinHit.componentId, pinIndex: pinHit.pinIndex } as const;
-      addWireSegment(state, state.pendingWire, toEndpoint, state.pendingWaypoints);
+      const toEndpoint = {
+        type: "pin",
+        componentId: pinHit.componentId,
+        pinIndex: pinHit.pinIndex,
+      } as const;
+      addWireSegment(
+        state,
+        state.pendingWire,
+        toEndpoint,
+        state.pendingWaypoints,
+      );
       clearPendingWire(state);
       ctx.reEvaluate();
       ctx.save();
@@ -158,8 +190,16 @@ function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext, 
         ctx.pushSnapshot();
         const junction = addJunction(state, wireHit.position);
         splitWireAtJunction(state, wireHit.wireId, junction.id);
-        const toEndpoint = { type: "junction", junctionId: junction.id } as const;
-        addWireSegment(state, state.pendingWire, toEndpoint, state.pendingWaypoints);
+        const toEndpoint = {
+          type: "junction",
+          junctionId: junction.id,
+        } as const;
+        addWireSegment(
+          state,
+          state.pendingWire,
+          toEndpoint,
+          state.pendingWaypoints,
+        );
         clearPendingWire(state);
         ctx.reEvaluate();
         ctx.save();
@@ -171,8 +211,17 @@ function handleWireClick(state: EditorState, point: Point, ctx: HandlerContext, 
   }
 }
 
-function handlePlaceComponent(state: EditorState, point: Point, ctx: HandlerContext): void {
-  if (!state.selectedTool || state.selectedTool === "select" || state.selectedTool === "wire") return;
+function handlePlaceComponent(
+  state: EditorState,
+  point: Point,
+  ctx: HandlerContext,
+): void {
+  if (
+    !state.selectedTool ||
+    state.selectedTool === "select" ||
+    state.selectedTool === "wire"
+  )
+    return;
   ctx.pushSnapshot();
   addComponent(state, state.selectedTool, point);
   clearSelection(state);
@@ -204,7 +253,11 @@ export function handleCanvasClick(
   }
 }
 
-export function handleCanvasMouseDown(state: EditorState, e: MouseEvent, ctx: HandlerContext): void {
+export function handleCanvasMouseDown(
+  state: EditorState,
+  e: MouseEvent,
+  ctx: HandlerContext,
+): void {
   // Handle middle-mouse pan or space+left pan
   if (e.button === 1 || (spaceHeld && e.button === 0)) {
     handlePanStart(state, e);
@@ -284,7 +337,11 @@ export function handleCanvasMouseMove(state: EditorState, e: MouseEvent): void {
   }
 }
 
-export function handleCanvasMouseUp(state: EditorState, e: MouseEvent, ctx: HandlerContext): void {
+export function handleCanvasMouseUp(
+  state: EditorState,
+  e: MouseEvent,
+  ctx: HandlerContext,
+): void {
   // Handle pan end
   if (panStart !== null) {
     handlePanEnd(state);

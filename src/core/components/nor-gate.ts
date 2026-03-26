@@ -1,5 +1,5 @@
-import type { ComponentDef } from "../types";
 import { getThemeColors } from "../theme";
+import type { ComponentDef } from "../types";
 
 export const norGate: ComponentDef = {
   type: "nor-gate",
@@ -7,12 +7,12 @@ export const norGate: ComponentDef = {
   width: 90,
   height: 50,
   pins: [
-    { direction: "input",  x: 0,  y: 12.5 },
-    { direction: "input",  x: 0,  y: 37.5 },
+    { direction: "input", x: 0, y: 12.5 },
+    { direction: "input", x: 0, y: 37.5 },
     { direction: "output", x: 90, y: 25 },
   ],
   evaluate(inputs) {
-    if (inputs.includes('E')) return ['E'];
+    if (inputs.includes("E")) return ["E"];
     return [inputs[0] || inputs[1] ? 0 : 1];
   },
   draw(ctx, x, y) {
@@ -42,7 +42,12 @@ export const norGate: ComponentDef = {
     // Start at top-left
     ctx.moveTo(x + lineLen, y);
     // Top convex arc curving to right tip (adjusted for bubble)
-    ctx.quadraticCurveTo(x + (w - 15) * 0.55, y, x + w - lineLen - bubbleR * 2 - 3, y + halfH);
+    ctx.quadraticCurveTo(
+      x + (w - 15) * 0.55,
+      y,
+      x + w - lineLen - bubbleR * 2 - 3,
+      y + halfH,
+    );
     // Bottom convex arc from right tip back to bottom-left
     ctx.quadraticCurveTo(x + (w - 15) * 0.55, y + h, x + lineLen, y + h);
     // Concave left curve (curved inward)

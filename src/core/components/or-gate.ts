@@ -1,5 +1,5 @@
-import type { ComponentDef } from "../types";
 import { getThemeColors } from "../theme";
+import type { ComponentDef } from "../types";
 
 export const orGate: ComponentDef = {
   type: "or-gate",
@@ -7,12 +7,12 @@ export const orGate: ComponentDef = {
   width: 80,
   height: 50,
   pins: [
-    { direction: "input",  x: 0,  y: 12.5 },
-    { direction: "input",  x: 0,  y: 37.5 },
+    { direction: "input", x: 0, y: 12.5 },
+    { direction: "input", x: 0, y: 37.5 },
     { direction: "output", x: 80, y: 25 },
   ],
   evaluate(inputs) {
-    if (inputs.includes('E')) return ['E'];
+    if (inputs.includes("E")) return ["E"];
     return [inputs[0] || inputs[1] ? 1 : 0];
   },
   draw(ctx, x, y) {

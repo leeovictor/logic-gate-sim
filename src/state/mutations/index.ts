@@ -3,51 +3,44 @@ export {
   setSelectedTool,
   toggleSwitchValue,
 } from "./component";
-
 export {
-  addWireSegment,
-  addWire,
-  addJunction,
-  splitWireAtJunction,
-  removeWireSegment,
-  removeSegmentsForComponent,
-  removeWiresForComponent,
-} from "./wire";
-
-export {
-  setPendingWire,
-  setPendingWireEndpoint,
-  addPendingWaypoint,
-  clearPendingWire,
-} from "./pending";
-
-export {
+  endDrag,
   startDrag,
   startJunctionDrag,
   updateDrag,
-  endDrag,
 } from "./drag";
 
 export {
-  selectComponent,
-  toggleComponentSelection,
-  selectWire,
-  toggleWireSelection,
-  selectJunction,
-  toggleJunctionSelection,
+  addPendingWaypoint,
+  clearPendingWire,
+  setPendingWire,
+  setPendingWireEndpoint,
+} from "./pending";
+export {
   clearSelection,
   deleteSelected,
-  startSelectionBox,
-  updateSelectionBox,
   endSelectionBox,
+  selectComponent,
+  selectJunction,
+  selectWire,
+  startSelectionBox,
+  toggleComponentSelection,
+  toggleJunctionSelection,
+  toggleWireSelection,
+  updateSelectionBox,
 } from "./selection";
-
-export {
-  setTheme,
-} from "./simulation";
-
+export { setTheme } from "./simulation";
 export {
   panViewport,
-  zoomViewport,
   resetViewport,
+  zoomViewport,
 } from "./viewport";
+export {
+  addJunction,
+  addWire,
+  addWireSegment,
+  removeSegmentsForComponent,
+  removeWireSegment,
+  removeWiresForComponent,
+  splitWireAtJunction,
+} from "./wire";

@@ -1,5 +1,16 @@
-import { describe, it, expect } from "vitest";
-import { createEditorState, addComponent, setSelectedTool, startDrag, updateDrag, endDrag, startSelectionBox, updateSelectionBox, endSelectionBox, addWireSegment } from "@/state";
+import { describe, expect, it } from "vitest";
+import {
+  addComponent,
+  addWireSegment,
+  createEditorState,
+  endDrag,
+  endSelectionBox,
+  setSelectedTool,
+  startDrag,
+  startSelectionBox,
+  updateDrag,
+  updateSelectionBox,
+} from "@/state";
 
 describe("createEditorState", () => {
   it("returns initial state with no tool and no components", () => {
@@ -53,9 +64,9 @@ describe("drag operations", () => {
 
     startDrag(state, comp.id, { x: 10, y: 15 });
 
-    expect(state.dragging!.componentId).toBe(comp.id);
-    expect(state.dragging!.offset).toEqual({ x: 10, y: 15 });
-    expect(state.dragging!.offsets.get(comp.id)).toEqual({ x: 10, y: 15 });
+    expect(state.dragging?.componentId).toBe(comp.id);
+    expect(state.dragging?.offset).toEqual({ x: 10, y: 15 });
+    expect(state.dragging?.offsets.get(comp.id)).toEqual({ x: 10, y: 15 });
   });
 
   it("updateDrag moves component position based on cursor minus offset", () => {
@@ -114,15 +125,18 @@ describe("selection box", () => {
   it("startSelectionBox sets selectionBox with start and current", () => {
     const state = createEditorState();
     startSelectionBox(state, { x: 10, y: 20 });
-    expect(state.selectionBox).toEqual({ start: { x: 10, y: 20 }, current: { x: 10, y: 20 } });
+    expect(state.selectionBox).toEqual({
+      start: { x: 10, y: 20 },
+      current: { x: 10, y: 20 },
+    });
   });
 
   it("updateSelectionBox updates current point", () => {
     const state = createEditorState();
     startSelectionBox(state, { x: 10, y: 20 });
     updateSelectionBox(state, { x: 100, y: 200 });
-    expect(state.selectionBox!.current).toEqual({ x: 100, y: 200 });
-    expect(state.selectionBox!.start).toEqual({ x: 10, y: 20 });
+    expect(state.selectionBox?.current).toEqual({ x: 100, y: 200 });
+    expect(state.selectionBox?.start).toEqual({ x: 10, y: 20 });
   });
 
   it("updateSelectionBox does nothing when no selectionBox", () => {
@@ -245,13 +259,16 @@ describe("multi-component drag", () => {
       state,
       { type: "pin", componentId: a.id, pinIndex: 2 },
       { type: "pin", componentId: b.id, pinIndex: 0 },
-      [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+      [
+        { x: 100, y: 100 },
+        { x: 200, y: 200 },
+      ],
     );
 
     // Select both components and the wire
     state.selectedComponentIds.add(a.id);
     state.selectedComponentIds.add(b.id);
-    state.selectedWireIds.add(wire!.id);
+    state.selectedWireIds.add(wire?.id);
 
     // Click on component a at (60, 60), offset = (10, 10)
     startDrag(state, a.id, { x: 10, y: 10 });
@@ -261,7 +278,10 @@ describe("multi-component drag", () => {
     expect(a.position).toEqual({ x: 100, y: 100 });
     expect(b.position).toEqual({ x: 300, y: 300 });
     // Waypoints should move by the same delta (+50, +50)
-    expect(wire!.waypoints).toEqual([{ x: 150, y: 150 }, { x: 250, y: 250 }]);
+    expect(wire?.waypoints).toEqual([
+      { x: 150, y: 150 },
+      { x: 250, y: 250 },
+    ]);
   });
 
   it("dragging does not move waypoints of unselected wires", () => {
@@ -284,6 +304,6 @@ describe("multi-component drag", () => {
     updateDrag(state, { x: 110, y: 110 });
 
     // Waypoints should stay at original position
-    expect(wire!.waypoints).toEqual([{ x: 100, y: 100 }]);
+    expect(wire?.waypoints).toEqual([{ x: 100, y: 100 }]);
   });
 });

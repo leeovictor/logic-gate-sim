@@ -1,6 +1,12 @@
-import { describe, it, expect } from "vitest";
-import { createEditorState, screenToWorld, panViewport, zoomViewport, resetViewport } from "@/state";
+import { describe, expect, it } from "vitest";
 import type { Viewport } from "@/core/types";
+import {
+  createEditorState,
+  panViewport,
+  resetViewport,
+  screenToWorld,
+  zoomViewport,
+} from "@/state";
 
 describe("screenToWorld", () => {
   it("converts screen coordinates to world coordinates with identity viewport", () => {

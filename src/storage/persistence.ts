@@ -1,4 +1,10 @@
-import type { EditorState, PlacedComponent, Wire, WireSegment, WireJunction } from "@/core/types";
+import type {
+  EditorState,
+  PlacedComponent,
+  Wire,
+  WireJunction,
+  WireSegment,
+} from "@/core/types";
 
 const STORAGE_KEY = "circuit";
 
@@ -61,7 +67,12 @@ export function saveCircuit(state: EditorState): void {
 
 export function loadCircuit(): Pick<
   SerializedCircuitV2,
-  "components" | "wireSegments" | "junctions" | "_nextId" | "_nextWireId" | "_nextJunctionId"
+  | "components"
+  | "wireSegments"
+  | "junctions"
+  | "_nextId"
+  | "_nextWireId"
+  | "_nextJunctionId"
 > | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -97,9 +108,16 @@ export function loadCircuit(): Pick<
  * Converts old Wire[] (point-to-point) to WireSegment[] (flexible endpoints).
  * v2 load will not have waypoints, defaulting to undefined (direct segment).
  */
-export function migrateV1toV2(data: SerializedCircuitV1): Pick<
+export function migrateV1toV2(
+  data: SerializedCircuitV1,
+): Pick<
   SerializedCircuitV2,
-  "components" | "wireSegments" | "junctions" | "_nextId" | "_nextWireId" | "_nextJunctionId"
+  | "components"
+  | "wireSegments"
+  | "junctions"
+  | "_nextId"
+  | "_nextWireId"
+  | "_nextJunctionId"
 > {
   // Convert old wires to new wire segments
   const wireSegments: WireSegment[] = data.wires.map((oldWire) => ({
@@ -127,7 +145,9 @@ export function migrateV1toV2(data: SerializedCircuitV1): Pick<
   };
 }
 
-function stripPinValues(state: Record<string, unknown>): Record<string, unknown> {
+function stripPinValues(
+  state: Record<string, unknown>,
+): Record<string, unknown> {
   const { pinValues, ...rest } = state;
   return rest;
 }

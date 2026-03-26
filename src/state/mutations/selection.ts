@@ -1,7 +1,7 @@
-import type { EditorState, Point } from "@/core/types";
 import { getComponentDef } from "@/core/registry";
+import type { EditorState, Point } from "@/core/types";
 import { resolveEndpoint } from "../editor-state";
-import { removeWireSegment, removeSegmentsForComponent } from "./wire";
+import { removeSegmentsForComponent, removeWireSegment } from "./wire";
 
 export function selectComponent(state: EditorState, id: string): void {
   state.selectedComponentIds.clear();
@@ -37,7 +37,10 @@ export function selectJunction(state: EditorState, junctionId: string): void {
   state.selectedJunctionIds.add(junctionId);
 }
 
-export function toggleJunctionSelection(state: EditorState, junctionId: string): void {
+export function toggleJunctionSelection(
+  state: EditorState,
+  junctionId: string,
+): void {
   if (state.selectedJunctionIds.has(junctionId)) {
     state.selectedJunctionIds.delete(junctionId);
   } else {
@@ -52,7 +55,12 @@ export function clearSelection(state: EditorState): void {
 }
 
 export function deleteSelected(state: EditorState): void {
-  if (state.selectedComponentIds.size === 0 && state.selectedWireIds.size === 0 && state.selectedJunctionIds.size === 0) return;
+  if (
+    state.selectedComponentIds.size === 0 &&
+    state.selectedWireIds.size === 0 &&
+    state.selectedJunctionIds.size === 0
+  )
+    return;
   for (const id of state.selectedComponentIds) {
     removeSegmentsForComponent(state, id);
   }
@@ -119,8 +127,14 @@ export function endSelectionBox(state: EditorState, ctrlKey: boolean): void {
     const toPos = resolveEndpoint(state, wire.to);
     if (!fromPos || !toPos) continue;
     if (
-      fromPos.x >= left && fromPos.x <= right && fromPos.y >= top && fromPos.y <= bottom &&
-      toPos.x >= left && toPos.x <= right && toPos.y >= top && toPos.y <= bottom
+      fromPos.x >= left &&
+      fromPos.x <= right &&
+      fromPos.y >= top &&
+      fromPos.y <= bottom &&
+      toPos.x >= left &&
+      toPos.x <= right &&
+      toPos.y >= top &&
+      toPos.y <= bottom
     ) {
       state.selectedWireIds.add(wire.id);
     }

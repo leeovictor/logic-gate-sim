@@ -1,5 +1,5 @@
-import type { EditorState, Point, WireEndpoint } from "@/core/types";
 import { getComponentDef } from "@/core/registry";
+import type { EditorState, Point, WireEndpoint } from "@/core/types";
 
 export function createEditorState(): EditorState {
   return {
@@ -41,7 +41,10 @@ export function endpointsEqual(a: WireEndpoint, b: WireEndpoint): boolean {
   return false;
 }
 
-export function resolveEndpoint(state: EditorState, endpoint: WireEndpoint): Point | null {
+export function resolveEndpoint(
+  state: EditorState,
+  endpoint: WireEndpoint,
+): Point | null {
   if (endpoint.type === "pin") {
     const comp = state.components.find((c) => c.id === endpoint.componentId);
     if (!comp) return null;

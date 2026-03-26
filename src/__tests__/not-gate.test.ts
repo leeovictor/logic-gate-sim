@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { notGate } from "@/core/components/not-gate";
 
 describe("notGate", () => {

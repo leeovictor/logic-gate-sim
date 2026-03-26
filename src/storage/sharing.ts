@@ -1,5 +1,8 @@
 import type { EditorState } from "@/core/types";
-import { exportCircuitToBase64, importCircuitFromBase64 } from "./binary-format";
+import {
+  exportCircuitToBase64,
+  importCircuitFromBase64,
+} from "./binary-format";
 import type { SerializedCircuitV2 } from "./persistence";
 
 /**
@@ -40,4 +43,3 @@ export function loadFromUrl(): SerializedCircuitV2 | null {
     return null;
   }
 }
-

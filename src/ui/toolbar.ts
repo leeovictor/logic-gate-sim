@@ -1,18 +1,18 @@
 import type { ToolMode } from "@/core/types";
 import {
-  selectIcon,
-  wireIcon,
   andGateIcon,
-  orGateIcon,
-  notGateIcon,
+  lightIcon,
+  moonIcon,
   nandGateIcon,
   norGateIcon,
-  xorGateIcon,
-  xnorGateIcon,
-  switchIcon,
-  lightIcon,
+  notGateIcon,
+  orGateIcon,
+  selectIcon,
   sunIcon,
-  moonIcon,
+  switchIcon,
+  wireIcon,
+  xnorGateIcon,
+  xorGateIcon,
 } from "./toolbar-icons";
 
 const toolIcons: Partial<Record<ToolMode, () => SVGSVGElement>> = {
@@ -140,11 +140,21 @@ function createToolGroup(
     wrapper,
     trigger,
     itemButtons: [],
-    open() { wrapper.classList.add("open"); },
-    close() { wrapper.classList.remove("open"); },
-    isOpen() { return wrapper.classList.contains("open"); },
-    activate() { wrapper.classList.add("active"); },
-    deactivate() { wrapper.classList.remove("active"); },
+    open() {
+      wrapper.classList.add("open");
+    },
+    close() {
+      wrapper.classList.remove("open");
+    },
+    isOpen() {
+      return wrapper.classList.contains("open");
+    },
+    activate() {
+      wrapper.classList.add("active");
+    },
+    deactivate() {
+      wrapper.classList.remove("active");
+    },
     setTriggerIcon(iconFactory: () => SVGSVGElement) {
       const newIcon = iconFactory();
       trigger.replaceChild(newIcon, currentIcon);
@@ -214,7 +224,10 @@ function createThemeToggleButton(
     btn.innerHTML = "";
     btn.appendChild(theme === "dark" ? sunIcon() : moonIcon());
     btn.title = theme === "dark" ? "Tema Claro" : "Tema Escuro";
-    btn.setAttribute("aria-label", theme === "dark" ? "Tema Claro" : "Tema Escuro");
+    btn.setAttribute(
+      "aria-label",
+      theme === "dark" ? "Tema Claro" : "Tema Escuro",
+    );
   }
 
   update();
@@ -243,7 +256,6 @@ function createShareButton(onShare: () => void): HTMLButtonElement {
 
   return btn;
 }
-
 
 function bindToolbarShortcuts(bindings: ShortcutBindings): void {
   window.addEventListener("keydown", (e) => {
@@ -312,14 +324,24 @@ export function createToolbar(
   let shortcutIndex = 1;
   for (const entry of toolEntries) {
     if (!isGroup(entry)) {
-      const btn = createToolButton(entry, shortcutIndex, onToolSelect, deactivateAll);
+      const btn = createToolButton(
+        entry,
+        shortcutIndex,
+        onToolSelect,
+        deactivateAll,
+      );
       topButtons.push(btn);
       toolbar.appendChild(btn);
     } else {
       const deactivateTopButtons = () => {
         for (const b of topButtons) b.classList.remove("active");
       };
-      const controller = createToolGroup(entry, shortcutIndex, onToolSelect, deactivateTopButtons);
+      const controller = createToolGroup(
+        entry,
+        shortcutIndex,
+        onToolSelect,
+        deactivateTopButtons,
+      );
       dropdown = controller;
       toolbar.appendChild(controller.wrapper);
     }
@@ -339,7 +361,10 @@ export function createToolbar(
     const themeSeparator = document.createElement("div");
     themeSeparator.className = "separator";
     toolbar.appendChild(themeSeparator);
-    const themeBtn = createThemeToggleButton(initialTheme ?? "light", onThemeToggle);
+    const themeBtn = createThemeToggleButton(
+      initialTheme ?? "light",
+      onThemeToggle,
+    );
     toolbar.appendChild(themeBtn);
   }
 

@@ -12,7 +12,16 @@ export interface PinDef {
   y: number;
 }
 
-export type ComponentType = "and-gate" | "or-gate" | "not-gate" | "nand-gate" | "nor-gate" | "xor-gate" | "xnor-gate" | "switch" | "light";
+export type ComponentType =
+  | "and-gate"
+  | "or-gate"
+  | "not-gate"
+  | "nand-gate"
+  | "nor-gate"
+  | "xor-gate"
+  | "xnor-gate"
+  | "switch"
+  | "light";
 
 export type ToolMode = "select" | "wire" | ComponentType;
 
@@ -23,8 +32,16 @@ export interface ComponentDef {
   height: number;
   pins: PinDef[];
   defaultState?: Record<string, unknown>;
-  draw(ctx: CanvasRenderingContext2D, x: number, y: number, state?: Record<string, unknown>): void;
-  evaluate(inputs: SignalValue[], state: Record<string, unknown>): SignalValue[];
+  draw(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    state?: Record<string, unknown>,
+  ): void;
+  evaluate(
+    inputs: SignalValue[],
+    state: Record<string, unknown>,
+  ): SignalValue[];
 }
 
 /** Signal value: 0 (off), 1 (on), or 'E' (error/conflict) */

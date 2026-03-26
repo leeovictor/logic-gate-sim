@@ -1,11 +1,18 @@
-import type { EditorState, Point, PendingWire } from "@/core/types";
+import type { EditorState, PendingWire, Point } from "@/core/types";
 
 /** @deprecated Use setPendingWireEndpoint instead */
-export function setPendingWire(state: EditorState, componentId: string, pinIndex: number): void {
+export function setPendingWire(
+  state: EditorState,
+  componentId: string,
+  pinIndex: number,
+): void {
   state.pendingWire = { type: "pin", componentId, pinIndex };
 }
 
-export function setPendingWireEndpoint(state: EditorState, endpoint: PendingWire): void {
+export function setPendingWireEndpoint(
+  state: EditorState,
+  endpoint: PendingWire,
+): void {
   state.pendingWire = endpoint;
 }
 

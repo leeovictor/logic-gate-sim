@@ -1,8 +1,17 @@
-import type { EditorState, PlacedComponent, Point, PinDef, WireEndpoint } from "@/core/types";
 import { getComponentDef } from "@/core/registry";
 import { getThemeColors } from "@/core/theme";
+import type {
+  EditorState,
+  PinDef,
+  PlacedComponent,
+  Point,
+  WireEndpoint,
+} from "@/core/types";
 
-export function hitTest(state: EditorState, point: Point): PlacedComponent | null {
+export function hitTest(
+  state: EditorState,
+  point: Point,
+): PlacedComponent | null {
   for (let i = state.components.length - 1; i >= 0; i--) {
     const comp = state.components[i];
     const def = getComponentDef(comp.type);
@@ -44,7 +53,10 @@ export function drawAll(
   ctx.restore();
 }
 
-function drawComponents(ctx: CanvasRenderingContext2D, state: EditorState): void {
+function drawComponents(
+  ctx: CanvasRenderingContext2D,
+  state: EditorState,
+): void {
   for (const comp of state.components) {
     const def = getComponentDef(comp.type);
     if (!def) continue;
@@ -66,8 +78,15 @@ function drawComponents(ctx: CanvasRenderingContext2D, state: EditorState): void
   }
 }
 
-function drawBezierWire(ctx: CanvasRenderingContext2D, from: Point, to: Point): void {
-  const offset = Math.max(Math.abs(to.x - from.x) * 0.5, to.x < from.x ? 80 : 40);
+function _drawBezierWire(
+  ctx: CanvasRenderingContext2D,
+  from: Point,
+  to: Point,
+): void {
+  const offset = Math.max(
+    Math.abs(to.x - from.x) * 0.5,
+    to.x < from.x ? 80 : 40,
+  );
   ctx.beginPath();
   ctx.moveTo(from.x, from.y);
   ctx.bezierCurveTo(from.x + offset, from.y, to.x - offset, to.y, to.x, to.y);
@@ -75,28 +94,36 @@ function drawBezierWire(ctx: CanvasRenderingContext2D, from: Point, to: Point): 
 }
 
 /** Draw a wire as an orthogonal polyline through waypoints */
-function drawOrthogonalWire(ctx: CanvasRenderingContext2D, from: Point, waypoints: Point[] | undefined, to: Point): void {
+function drawOrthogonalWire(
+  ctx: CanvasRenderingContext2D,
+  from: Point,
+  waypoints: Point[] | undefined,
+  to: Point,
+): void {
   ctx.beginPath();
   ctx.moveTo(from.x, from.y);
-  
+
   if (waypoints && waypoints.length > 0) {
     for (const wp of waypoints) {
       ctx.lineTo(wp.x, wp.y);
     }
   }
-  
+
   ctx.lineTo(to.x, to.y);
   ctx.stroke();
 }
 
-function getWireSignal(state: EditorState, wireId: string): 0 | 1 | 'E' {
+function getWireSignal(state: EditorState, wireId: string): 0 | 1 | "E" {
   // Find which net contains this wire
   const net = state.nets.find((n) => n.wireSegmentIds.includes(wireId));
   if (!net) return 0;
   return net.signalValue;
 }
 
-function drawWireSegments(ctx: CanvasRenderingContext2D, state: EditorState): void {
+function drawWireSegments(
+  ctx: CanvasRenderingContext2D,
+  state: EditorState,
+): void {
   const colors = getThemeColors();
   for (const wire of state.wireSegments) {
     const from = getEndpointPosition(state, wire.from);
@@ -110,7 +137,7 @@ function drawWireSegments(ctx: CanvasRenderingContext2D, state: EditorState): vo
       ctx.lineWidth = 3;
     } else {
       const signal = getWireSignal(state, wire.id);
-      if (signal === 'E') {
+      if (signal === "E") {
         ctx.strokeStyle = "#ef4444"; // Red for error
         ctx.lineWidth = 2.5;
       } else if (signal === 1) {
@@ -150,14 +177,23 @@ function drawWireSegments(ctx: CanvasRenderingContext2D, state: EditorState): vo
     const isSelected = state.selectedJunctionIds.has(junction.id);
     ctx.save();
     ctx.beginPath();
-    ctx.arc(junction.position.x, junction.position.y, isSelected ? 7 : 5, 0, Math.PI * 2);
+    ctx.arc(
+      junction.position.x,
+      junction.position.y,
+      isSelected ? 7 : 5,
+      0,
+      Math.PI * 2,
+    );
     ctx.fillStyle = isSelected ? "#3b82f6" : colors.junctionColor;
     ctx.fill();
     ctx.restore();
   }
 }
 
-function drawPinIndicators(ctx: CanvasRenderingContext2D, state: EditorState): void {
+function drawPinIndicators(
+  ctx: CanvasRenderingContext2D,
+  state: EditorState,
+): void {
   if (state.selectedTool !== "wire") return;
   for (const comp of state.components) {
     const def = getComponentDef(comp.type);
@@ -174,11 +210,14 @@ function drawPinIndicators(ctx: CanvasRenderingContext2D, state: EditorState): v
         state.hoveredPin !== null &&
         state.hoveredPin.componentId === comp.id &&
         state.hoveredPin.pinIndex === i;
-      
+
       // Color coding: output = green, input = blue
       const pinColor = pin.direction === "output" ? "#22c55e" : "#3b82f6";
-      const hoverColor = pin.direction === "output" ? "rgba(34, 197, 94, 0.15)" : "rgba(59, 130, 246, 0.15)";
-      
+      const hoverColor =
+        pin.direction === "output"
+          ? "rgba(34, 197, 94, 0.15)"
+          : "rgba(59, 130, 246, 0.15)";
+
       ctx.save();
       if (isHovered && !isPending) {
         ctx.beginPath();
@@ -207,25 +246,37 @@ function drawPinIndicators(ctx: CanvasRenderingContext2D, state: EditorState): v
   }
 }
 
-function drawPendingWire(ctx: CanvasRenderingContext2D, state: EditorState): void {
+function drawPendingWire(
+  ctx: CanvasRenderingContext2D,
+  state: EditorState,
+): void {
   if (!state.pendingWire || !state.cursorPosition) return;
   const from = getEndpointPosition(state, state.pendingWire);
   if (!from) return;
-  
+
   const colors = getThemeColors();
   ctx.save();
   ctx.strokeStyle = colors.pendingWireColor;
   ctx.lineWidth = 2;
   ctx.setLineDash([6, 3]);
-  
+
   // Draw polyline through committed waypoints, then straight line to cursor
   drawOrthogonalWire(ctx, from, state.pendingWaypoints, state.cursorPosition);
-  
+
   ctx.restore();
 }
 
-function drawGhostPreview(ctx: CanvasRenderingContext2D, state: EditorState): void {
-  if (!state.selectedTool || state.selectedTool === "select" || state.selectedTool === "wire" || !state.cursorPosition) return;
+function drawGhostPreview(
+  ctx: CanvasRenderingContext2D,
+  state: EditorState,
+): void {
+  if (
+    !state.selectedTool ||
+    state.selectedTool === "select" ||
+    state.selectedTool === "wire" ||
+    !state.cursorPosition
+  )
+    return;
   const def = getComponentDef(state.selectedTool);
   if (!def) return;
   ctx.save();
@@ -234,7 +285,10 @@ function drawGhostPreview(ctx: CanvasRenderingContext2D, state: EditorState): vo
   ctx.restore();
 }
 
-function drawSelectionBox(ctx: CanvasRenderingContext2D, state: EditorState): void {
+function drawSelectionBox(
+  ctx: CanvasRenderingContext2D,
+  state: EditorState,
+): void {
   if (!state.selectionBox) return;
   const { start, current } = state.selectionBox;
   const x = Math.min(start.x, current.x);
@@ -255,7 +309,10 @@ export function getPinPosition(comp: PlacedComponent, pinDef: PinDef): Point {
   return { x: comp.position.x + pinDef.x, y: comp.position.y + pinDef.y };
 }
 
-export function getEndpointPosition(state: EditorState, endpoint: WireEndpoint): Point | null {
+export function getEndpointPosition(
+  state: EditorState,
+  endpoint: WireEndpoint,
+): Point | null {
   if (endpoint.type === "pin") {
     const comp = state.components.find((c) => c.id === endpoint.componentId);
     if (!comp) return null;
@@ -275,4 +332,3 @@ export function getEndpointPosition(state: EditorState, endpoint: WireEndpoint):
   }
   return null;
 }
-

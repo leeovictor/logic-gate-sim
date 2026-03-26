@@ -1,5 +1,11 @@
-import type { EditorState, ComponentType, ToolMode, PlacedComponent, Point } from "@/core/types";
 import { getComponentDef } from "@/core/registry";
+import type {
+  ComponentType,
+  EditorState,
+  PlacedComponent,
+  Point,
+  ToolMode,
+} from "@/core/types";
 
 export function addComponent(
   state: EditorState,
@@ -25,7 +31,10 @@ export function setSelectedTool(
   state.events.dispatchEvent(new CustomEvent("toolchange", { detail: tool }));
 }
 
-export function toggleSwitchValue(state: EditorState, componentId: string): void {
+export function toggleSwitchValue(
+  state: EditorState,
+  componentId: string,
+): void {
   const comp = state.components.find((c) => c.id === componentId);
   if (!comp || comp.type !== "switch") return;
   comp.state.value = comp.state.value ? 0 : 1;

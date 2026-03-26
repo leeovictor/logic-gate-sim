@@ -1,17 +1,16 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import type { EditorState, History } from "@/state";
 import {
+  canRedo,
+  canUndo,
+  captureSnapshot,
   createEditorState,
   createHistory,
-  captureSnapshot,
-  pushSnapshot,
   popLastSnapshot,
-  undo,
+  pushSnapshot,
   redo,
-  canUndo,
-  canRedo,
-  addComponent,
+  undo,
 } from "@/state";
-import type { EditorState, History } from "@/state";
 
 describe("History (Undo/Redo)", () => {
   let state: EditorState;
@@ -31,7 +30,9 @@ describe("History (Undo/Redo)", () => {
 
   describe("captureSnapshot", () => {
     it("should capture circuit-structural state", () => {
-      state.components = [{ id: "comp-0", type: "switch", position: { x: 10, y: 20 }, state: {} }];
+      state.components = [
+        { id: "comp-0", type: "switch", position: { x: 10, y: 20 }, state: {} },
+      ];
       state._nextId = 5;
 
       const snapshot = captureSnapshot(state);
@@ -41,7 +42,9 @@ describe("History (Undo/Redo)", () => {
     });
 
     it("should perform deep copy (snapshot isolation)", () => {
-      state.components = [{ id: "comp-0", type: "switch", position: { x: 10, y: 20 }, state: {} }];
+      state.components = [
+        { id: "comp-0", type: "switch", position: { x: 10, y: 20 }, state: {} },
+      ];
 
       const snapshot = captureSnapshot(state);
 
@@ -116,7 +119,9 @@ describe("History (Undo/Redo)", () => {
 
     it("should restore previous state", () => {
       // Setup: initial state with component
-      state.components = [{ id: "comp-0", type: "switch", position: { x: 10, y: 20 }, state: {} }];
+      state.components = [
+        { id: "comp-0", type: "switch", position: { x: 10, y: 20 }, state: {} },
+      ];
       pushSnapshot(history, state);
 
       // Modify state
@@ -139,7 +144,12 @@ describe("History (Undo/Redo)", () => {
     });
 
     it("should be reversible (undo then redo)", () => {
-      const initialComponent: EditorState["components"][number] = { id: "comp-0", type: "switch", position: { x: 10, y: 20 }, state: {} };
+      const initialComponent: EditorState["components"][number] = {
+        id: "comp-0",
+        type: "switch",
+        position: { x: 10, y: 20 },
+        state: {},
+      };
       state.components = [initialComponent];
       pushSnapshot(history, state);
 
@@ -163,7 +173,9 @@ describe("History (Undo/Redo)", () => {
 
     it("should restore state from redo stack", () => {
       pushSnapshot(history, state);
-      state.components = [{ id: "comp-0", type: "switch", position: { x: 10, y: 20 }, state: {} }];
+      state.components = [
+        { id: "comp-0", type: "switch", position: { x: 10, y: 20 }, state: {} },
+      ];
 
       undo(history, state);
       expect(state.components.length).toBe(0);
@@ -208,17 +220,29 @@ describe("History (Undo/Redo)", () => {
       pushSnapshot(history, state);
 
       // Add comp-0, now state has 1 component
-      state.components = [{ id: "comp-0", type: "switch", position: { x: 0, y: 0 }, state: {} }];
+      state.components = [
+        { id: "comp-0", type: "switch", position: { x: 0, y: 0 }, state: {} },
+      ];
       // Savepoint 1: 1 component - captured before adding comp-1
       pushSnapshot(history, state);
 
       // Add comp-1, now state has 2 components
-      state.components.push({ id: "comp-1", type: "light", position: { x: 10, y: 0 }, state: {} });
+      state.components.push({
+        id: "comp-1",
+        type: "light",
+        position: { x: 10, y: 0 },
+        state: {},
+      });
       // Savepoint 2: 2 components - captured before adding comp-2
       pushSnapshot(history, state);
 
       // Add comp-2, now state has 3 components
-      state.components.push({ id: "comp-2", type: "and-gate", position: { x: 20, y: 0 }, state: {} });
+      state.components.push({
+        id: "comp-2",
+        type: "and-gate",
+        position: { x: 20, y: 0 },
+        state: {},
+      });
       // NOTE: We do NOT push snapshot here to represent current state with 3 components
 
       // Undo: restore to savepoint 2 (2 components)
@@ -241,7 +265,9 @@ describe("History (Undo/Redo)", () => {
 
     it("should clear redo when new action occurs after undo", () => {
       pushSnapshot(history, state);
-      state.components = [{ id: "comp-0", type: "switch", position: { x: 0, y: 0 }, state: {} }];
+      state.components = [
+        { id: "comp-0", type: "switch", position: { x: 0, y: 0 }, state: {} },
+      ];
 
       undo(history, state);
       expect(canRedo(history)).toBe(true);
@@ -254,7 +280,9 @@ describe("History (Undo/Redo)", () => {
 
   describe("Snapshot capture excludes transient state", () => {
     it("should only capture structural fields", () => {
-      state.components = [{ id: "comp-0", type: "switch", position: { x: 10, y: 20 }, state: {} }];
+      state.components = [
+        { id: "comp-0", type: "switch", position: { x: 10, y: 20 }, state: {} },
+      ];
       state.selectedComponentIds.add("comp-0");
       state.hoveredPin = { componentId: "comp-0", pinIndex: 0 };
       state.selectionBox = { start: { x: 0, y: 0 }, current: { x: 10, y: 10 } };

@@ -1,18 +1,18 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  createEditorState,
   addComponent,
-  addWire,
-  removeWiresForComponent,
-  setPendingWire,
-  clearPendingWire,
   addPendingWaypoint,
-  deleteSelected,
-  selectComponent,
+  addWire,
   addWireSegment,
+  clearPendingWire,
+  createEditorState,
+  deleteSelected,
+  removeWiresForComponent,
+  selectComponent,
+  setPendingWire,
 } from "@/state";
-import { getPinPosition } from "@/ui/renderer";
 import { hitTestPin } from "@/ui/hit-test";
+import { getPinPosition } from "@/ui/renderer";
 
 // Helper: create state with two AND gates
 function stateWithTwoGates() {
@@ -31,13 +31,13 @@ describe("addWire", () => {
       { type: "pin", componentId: b.id, pinIndex: 0 }, // input
     );
     expect(wire).not.toBeNull();
-    expect(wire!.id).toBeDefined();
-    expect(wire!.from.type).toBe("pin");
-    expect((wire!.from as any).componentId).toBe(a.id);
-    expect((wire!.from as any).pinIndex).toBe(2);
-    expect(wire!.to.type).toBe("pin");
-    expect((wire!.to as any).componentId).toBe(b.id);
-    expect((wire!.to as any).pinIndex).toBe(0);
+    expect(wire?.id).toBeDefined();
+    expect(wire?.from.type).toBe("pin");
+    expect((wire?.from as any).componentId).toBe(a.id);
+    expect((wire?.from as any).pinIndex).toBe(2);
+    expect(wire?.to.type).toBe("pin");
+    expect((wire?.to as any).componentId).toBe(b.id);
+    expect((wire?.to as any).pinIndex).toBe(0);
     expect(state.wireSegments).toHaveLength(1);
   });
 
@@ -53,7 +53,7 @@ describe("addWire", () => {
       { type: "pin", componentId: a.id, pinIndex: 2 },
       { type: "pin", componentId: b.id, pinIndex: 1 },
     );
-    expect(w1!.id).not.toBe(w2!.id);
+    expect(w1?.id).not.toBe(w2?.id);
   });
 
   it("rejeita wire entre dois pins do mesmo componente", () => {
@@ -168,7 +168,11 @@ describe("pendingWire", () => {
   it("setPendingWire define o wire pendente", () => {
     const state = createEditorState();
     setPendingWire(state, "comp-0", 2);
-    expect(state.pendingWire).toEqual({ type: "pin", componentId: "comp-0", pinIndex: 2 });
+    expect(state.pendingWire).toEqual({
+      type: "pin",
+      componentId: "comp-0",
+      pinIndex: 2,
+    });
   });
 
   it("clearPendingWire limpa o wire pendente", () => {
@@ -181,7 +185,11 @@ describe("pendingWire", () => {
 
 describe("getPinPosition", () => {
   it("calcula posição absoluta do pin corretamente", () => {
-    const comp = { id: "c", type: "and-gate" as const, position: { x: 100, y: 50 } };
+    const comp = {
+      id: "c",
+      type: "and-gate" as const,
+      position: { x: 100, y: 50 },
+    };
     const pinDef = { direction: "input" as const, x: 0, y: 12.5 };
     const pos = getPinPosition(comp, pinDef);
     expect(pos).toEqual({ x: 100, y: 62.5 });
@@ -194,8 +202,8 @@ describe("hitTestPin", () => {
     // AND gate output pin is at x=80, y=25 relative; comp a is at (0,0)
     const hit = hitTestPin(state, { x: 80, y: 25 });
     expect(hit).not.toBeNull();
-    expect(hit!.componentId).toBe(a.id);
-    expect(hit!.pinIndex).toBe(2);
+    expect(hit?.componentId).toBe(a.id);
+    expect(hit?.pinIndex).toBe(2);
   });
 
   it("retorna null quando clique está fora do raio", () => {
@@ -211,14 +219,17 @@ describe("hitTestPin", () => {
     const second = addComponent(state, "and-gate", { x: 0, y: 0 });
     const hit = hitTestPin(state, { x: 80, y: 25 });
     expect(hit).not.toBeNull();
-    expect(hit!.componentId).toBe(second.id);
+    expect(hit?.componentId).toBe(second.id);
   });
 });
 
 describe("waypoints", () => {
   it("addWireSegment aceita waypoints opcionais", () => {
     const { state, a, b } = stateWithTwoGates();
-    const waypoints = [{ x: 50, y: 10 }, { x: 150, y: 30 }];
+    const waypoints = [
+      { x: 50, y: 10 },
+      { x: 150, y: 30 },
+    ];
     const wire = addWireSegment(
       state,
       { type: "pin", componentId: a.id, pinIndex: 2 },
@@ -226,7 +237,7 @@ describe("waypoints", () => {
       waypoints,
     );
     expect(wire).not.toBeNull();
-    expect(wire!.waypoints).toEqual(waypoints);
+    expect(wire?.waypoints).toEqual(waypoints);
   });
 
   it("addWireSegment sem waypoints cria wire com waypoints undefined", () => {
@@ -237,7 +248,7 @@ describe("waypoints", () => {
       { type: "pin", componentId: b.id, pinIndex: 0 },
     );
     expect(wire).not.toBeNull();
-    expect(wire!.waypoints).toBeUndefined();
+    expect(wire?.waypoints).toBeUndefined();
   });
 
   it("addPendingWaypoint acumula waypoints no estado", () => {
@@ -255,12 +266,12 @@ describe("waypoints", () => {
     setPendingWire(state, "comp-0", 2);
     addPendingWaypoint(state, { x: 50, y: 100 });
     addPendingWaypoint(state, { x: 150, y: 200 });
-    
+
     expect(state.pendingWire).not.toBeNull();
     expect(state.pendingWaypoints).toHaveLength(2);
-    
+
     clearPendingWire(state);
-    
+
     expect(state.pendingWire).toBeNull();
     expect(state.pendingWaypoints).toEqual([]);
   });
@@ -274,6 +285,6 @@ describe("waypoints", () => {
       [],
     );
     expect(wire).not.toBeNull();
-    expect(wire!.waypoints).toBeUndefined();
+    expect(wire?.waypoints).toBeUndefined();
   });
 });

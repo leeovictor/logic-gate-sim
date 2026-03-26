@@ -1,26 +1,32 @@
 import "./ui/style.css";
+import { evaluateCircuit } from "@/core/simulation";
 import {
-  createEditorState,
-  setSelectedTool,
-  clearSelection,
-  deleteSelected,
   clearPendingWire,
+  clearSelection,
+  createEditorState,
   createHistory,
-  pushSnapshot,
+  deleteSelected,
   popLastSnapshot,
-  undo,
+  pushSnapshot,
   redo,
   resetViewport,
+  setSelectedTool,
   setTheme,
+  undo,
 } from "@/state";
-import { createToolbar } from "@/ui/toolbar";
+import { loadCircuit, saveCircuit } from "@/storage/persistence";
+import { copyShareUrl, loadFromUrl } from "@/storage/sharing";
+import {
+  handleCanvasClick,
+  handleCanvasMouseDown,
+  handleCanvasMouseMove,
+  handleCanvasMouseUp,
+  handleWheel,
+  setSpaceHeld,
+} from "@/ui/handlers";
 import { drawAll } from "@/ui/renderer";
-import { evaluateCircuit } from "@/core/simulation";
-import { handleCanvasClick, handleCanvasMouseDown, handleCanvasMouseMove, handleCanvasMouseUp, handleWheel, setSpaceHeld } from "@/ui/handlers";
-import { saveCircuit, loadCircuit } from "@/storage/persistence";
-import { loadFromUrl, copyShareUrl } from "@/storage/sharing";
 import { showToast } from "@/ui/toast";
-
+import { createToolbar } from "@/ui/toolbar";
 
 const state = createEditorState();
 const history = createHistory();
@@ -150,7 +156,10 @@ window.addEventListener("keydown", (e) => {
       save();
     }
   }
-  if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) {
+  if (
+    (e.ctrlKey || e.metaKey) &&
+    (e.key === "y" || (e.key === "z" && e.shiftKey))
+  ) {
     e.preventDefault();
     if (redo(history, state)) {
       clearSelection(state);
@@ -176,10 +185,13 @@ canvas.addEventListener("mouseleave", () => {
   state.cursorPosition = null;
 });
 
-canvas.addEventListener("wheel", (e) => {
-  handleWheel(state, e);
-}, { passive: false });
-
+canvas.addEventListener(
+  "wheel",
+  (e) => {
+    handleWheel(state, e);
+  },
+  { passive: false },
+);
 
 function render() {
   drawAll(ctx, state, canvas.width, canvas.height);

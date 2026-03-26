@@ -1,7 +1,19 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { exportCircuitToBase64, importCircuitFromBase64, serializeToBinary, deserializeFromBinary } from "@/storage/binary-format";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  addComponent,
+  addJunction,
+  addWire,
+  addWireSegment,
+  createEditorState,
+  splitWireAtJunction,
+} from "@/state";
+import {
+  deserializeFromBinary,
+  exportCircuitToBase64,
+  importCircuitFromBase64,
+  serializeToBinary,
+} from "@/storage/binary-format";
 import { generateShareUrl, loadFromUrl } from "@/storage/sharing";
-import { createEditorState, addComponent, addWire, addWireSegment, addJunction, splitWireAtJunction } from "@/state";
 
 beforeEach(() => {
   // Mock window.location for tests
@@ -27,25 +39,29 @@ describe("exportCircuitToBase64 / importCircuitFromBase64", () => {
 
     const decoded = importCircuitFromBase64(encoded);
     expect(decoded).not.toBeNull();
-    expect(decoded!.components).toHaveLength(2);
-    expect(decoded!.components[0].type).toBe("and-gate");
-    expect(decoded!.components[0].position).toEqual({ x: 100, y: 200 });
-    expect(decoded!.components[1].type).toBe("switch");
+    expect(decoded?.components).toHaveLength(2);
+    expect(decoded?.components[0].type).toBe("and-gate");
+    expect(decoded?.components[0].position).toEqual({ x: 100, y: 200 });
+    expect(decoded?.components[1].type).toBe("switch");
   });
 
   it("round-trips circuit with wires and junctions", () => {
     const state = createEditorState();
     const comp1 = addComponent(state, "switch", { x: 10, y: 20 });
     const comp2 = addComponent(state, "and-gate", { x: 100, y: 200 });
-    addWire(state, { type: "pin", componentId: comp1.id, pinIndex: 0 }, { type: "pin", componentId: comp2.id, pinIndex: 0 });
+    addWire(
+      state,
+      { type: "pin", componentId: comp1.id, pinIndex: 0 },
+      { type: "pin", componentId: comp2.id, pinIndex: 0 },
+    );
 
     const encoded = exportCircuitToBase64(state);
     const decoded = importCircuitFromBase64(encoded);
 
     expect(decoded).not.toBeNull();
-    expect(decoded!.wireSegments).toHaveLength(1);
-    expect(decoded!._nextId).toBe(state._nextId);
-    expect(decoded!._nextWireId).toBe(state._nextWireId);
+    expect(decoded?.wireSegments).toHaveLength(1);
+    expect(decoded?._nextId).toBe(state._nextId);
+    expect(decoded?._nextWireId).toBe(state._nextWireId);
   });
 
   it("preserves component state", () => {
@@ -56,7 +72,7 @@ describe("exportCircuitToBase64 / importCircuitFromBase64", () => {
     const encoded = exportCircuitToBase64(state);
     const decoded = importCircuitFromBase64(encoded);
 
-    expect(decoded!.components[0].state.value).toBe(1);
+    expect(decoded?.components[0].state.value).toBe(1);
   });
 
   it("handles empty circuit", () => {
@@ -65,8 +81,8 @@ describe("exportCircuitToBase64 / importCircuitFromBase64", () => {
     const decoded = importCircuitFromBase64(encoded);
 
     expect(decoded).not.toBeNull();
-    expect(decoded!.components).toEqual([]);
-    expect(decoded!.wireSegments).toEqual([]);
+    expect(decoded?.components).toEqual([]);
+    expect(decoded?.wireSegments).toEqual([]);
   });
 
   it("uses URL-safe Base64 encoding (no +/= in output)", () => {
@@ -124,9 +140,9 @@ describe("serializeToBinary / deserializeFromBinary", () => {
     const bytes = serializeToBinary(state);
     const result = deserializeFromBinary(bytes);
     expect(result).not.toBeNull();
-    expect(result!.components).toEqual([]);
-    expect(result!.wireSegments).toEqual([]);
-    expect(result!.junctions).toEqual([]);
+    expect(result?.components).toEqual([]);
+    expect(result?.wireSegments).toEqual([]);
+    expect(result?.junctions).toEqual([]);
   });
 
   it("round-trips components with types and positions", () => {
@@ -141,12 +157,27 @@ describe("serializeToBinary / deserializeFromBinary", () => {
     const result = deserializeFromBinary(bytes);
 
     expect(result).not.toBeNull();
-    expect(result!.components).toHaveLength(5);
-    expect(result!.components[0]).toMatchObject({ type: "and-gate", position: { x: 100, y: 200 } });
-    expect(result!.components[1]).toMatchObject({ type: "switch", position: { x: 10, y: 20 } });
-    expect(result!.components[2]).toMatchObject({ type: "or-gate", position: { x: 300, y: 400 } });
-    expect(result!.components[3]).toMatchObject({ type: "not-gate", position: { x: 50, y: 60 } });
-    expect(result!.components[4]).toMatchObject({ type: "light", position: { x: 500, y: 600 } });
+    expect(result?.components).toHaveLength(5);
+    expect(result?.components[0]).toMatchObject({
+      type: "and-gate",
+      position: { x: 100, y: 200 },
+    });
+    expect(result?.components[1]).toMatchObject({
+      type: "switch",
+      position: { x: 10, y: 20 },
+    });
+    expect(result?.components[2]).toMatchObject({
+      type: "or-gate",
+      position: { x: 300, y: 400 },
+    });
+    expect(result?.components[3]).toMatchObject({
+      type: "not-gate",
+      position: { x: 50, y: 60 },
+    });
+    expect(result?.components[4]).toMatchObject({
+      type: "light",
+      position: { x: 500, y: 600 },
+    });
   });
 
   it("preserves switch value=1 state", () => {
@@ -157,7 +188,7 @@ describe("serializeToBinary / deserializeFromBinary", () => {
     const bytes = serializeToBinary(state);
     const result = deserializeFromBinary(bytes);
 
-    expect(result!.components[0].state.value).toBe(1);
+    expect(result?.components[0].state.value).toBe(1);
   });
 
   it("preserves switch value=0 state", () => {
@@ -168,33 +199,49 @@ describe("serializeToBinary / deserializeFromBinary", () => {
     const bytes = serializeToBinary(state);
     const result = deserializeFromBinary(bytes);
 
-    expect(result!.components[0].state.value).toBe(0);
+    expect(result?.components[0].state.value).toBe(0);
   });
 
   it("round-trips pin-to-pin wire segment", () => {
     const state = createEditorState();
     const sw = addComponent(state, "switch", { x: 10, y: 20 });
     const gate = addComponent(state, "and-gate", { x: 100, y: 200 });
-    addWire(state, { type: "pin", componentId: sw.id, pinIndex: 0 }, { type: "pin", componentId: gate.id, pinIndex: 0 });
+    addWire(
+      state,
+      { type: "pin", componentId: sw.id, pinIndex: 0 },
+      { type: "pin", componentId: gate.id, pinIndex: 0 },
+    );
 
     const bytes = serializeToBinary(state);
     const result = deserializeFromBinary(bytes);
 
-    expect(result!.wireSegments).toHaveLength(1);
-    const seg = result!.wireSegments[0];
-    expect(seg.from).toMatchObject({ type: "pin", componentId: "comp-0", pinIndex: 0 });
-    expect(seg.to).toMatchObject({ type: "pin", componentId: "comp-1", pinIndex: 0 });
+    expect(result?.wireSegments).toHaveLength(1);
+    const seg = result?.wireSegments[0];
+    expect(seg.from).toMatchObject({
+      type: "pin",
+      componentId: "comp-0",
+      pinIndex: 0,
+    });
+    expect(seg.to).toMatchObject({
+      type: "pin",
+      componentId: "comp-1",
+      pinIndex: 0,
+    });
   });
 
   it("round-trips point endpoint", () => {
     const state = createEditorState();
     addComponent(state, "and-gate", { x: 100, y: 200 });
-    addWire(state, { type: "point", x: 50, y: 75 }, { type: "pin", componentId: state.components[0].id, pinIndex: 0 });
+    addWire(
+      state,
+      { type: "point", x: 50, y: 75 },
+      { type: "pin", componentId: state.components[0].id, pinIndex: 0 },
+    );
 
     const bytes = serializeToBinary(state);
     const result = deserializeFromBinary(bytes);
 
-    const from = result!.wireSegments[0].from;
+    const from = result?.wireSegments[0].from;
     expect(from).toMatchObject({ type: "point", x: 50, y: 75 });
   });
 
@@ -202,14 +249,20 @@ describe("serializeToBinary / deserializeFromBinary", () => {
     const state = createEditorState();
     state.junctions.push({ id: "junc-0", position: { x: 100, y: 100 } });
     state._nextJunctionId = 1;
-    addWire(state, { type: "junction", junctionId: "junc-0" }, { type: "point", x: 200, y: 200 });
+    addWire(
+      state,
+      { type: "junction", junctionId: "junc-0" },
+      { type: "point", x: 200, y: 200 },
+    );
 
     const bytes = serializeToBinary(state);
     const result = deserializeFromBinary(bytes);
 
-    expect(result!.junctions).toHaveLength(1);
-    expect(result!.junctions[0]).toMatchObject({ position: { x: 100, y: 100 } });
-    const from = result!.wireSegments[0].from;
+    expect(result?.junctions).toHaveLength(1);
+    expect(result?.junctions[0]).toMatchObject({
+      position: { x: 100, y: 100 },
+    });
+    const from = result?.wireSegments[0].from;
     expect(from).toMatchObject({ type: "junction", junctionId: "junc-0" });
   });
 
@@ -217,7 +270,10 @@ describe("serializeToBinary / deserializeFromBinary", () => {
     const state = createEditorState();
     addComponent(state, "and-gate", { x: 0, y: 0 });
     addComponent(state, "switch", { x: 200, y: 0 });
-    const waypoints = [{ x: 50, y: 50 }, { x: 150, y: 100 }];
+    const waypoints = [
+      { x: 50, y: 50 },
+      { x: 150, y: 100 },
+    ];
     addWireSegment(
       state,
       { type: "pin", componentId: "comp-0", pinIndex: 2 },
@@ -228,8 +284,8 @@ describe("serializeToBinary / deserializeFromBinary", () => {
     const bytes = serializeToBinary(state);
     const result = deserializeFromBinary(bytes);
 
-    expect(result!.wireSegments).toHaveLength(1);
-    expect(result!.wireSegments[0].waypoints).toEqual(waypoints);
+    expect(result?.wireSegments).toHaveLength(1);
+    expect(result?.wireSegments[0].waypoints).toEqual(waypoints);
   });
 
   it("round-trips multiple waypoints", () => {
@@ -252,8 +308,8 @@ describe("serializeToBinary / deserializeFromBinary", () => {
     const bytes = serializeToBinary(state);
     const result = deserializeFromBinary(bytes);
 
-    expect(result!.wireSegments[0].waypoints).toHaveLength(4);
-    expect(result!.wireSegments[0].waypoints).toEqual(waypoints);
+    expect(result?.wireSegments[0].waypoints).toHaveLength(4);
+    expect(result?.wireSegments[0].waypoints).toEqual(waypoints);
   });
 
   it("round-trips counter values", () => {
@@ -264,9 +320,9 @@ describe("serializeToBinary / deserializeFromBinary", () => {
     const bytes = serializeToBinary(state);
     const result = deserializeFromBinary(bytes);
 
-    expect(result!._nextId).toBe(state._nextId);
-    expect(result!._nextWireId).toBe(state._nextWireId);
-    expect(result!._nextJunctionId).toBe(state._nextJunctionId);
+    expect(result?._nextId).toBe(state._nextId);
+    expect(result?._nextWireId).toBe(state._nextWireId);
+    expect(result?._nextJunctionId).toBe(state._nextJunctionId);
   });
 
   it("handles 50+ components (uint16 range)", () => {
@@ -278,8 +334,8 @@ describe("serializeToBinary / deserializeFromBinary", () => {
     const bytes = serializeToBinary(state);
     const result = deserializeFromBinary(bytes);
 
-    expect(result!.components).toHaveLength(50);
-    expect(result!.components[49].position).toEqual({ x: 490, y: 490 });
+    expect(result?.components).toHaveLength(50);
+    expect(result?.components[49].position).toEqual({ x: 490, y: 490 });
   });
 
   it("returns null for wrong format version", () => {
@@ -298,9 +354,9 @@ describe("exportCircuitToBase64 / importCircuitFromBase64 (binary+deflate)", () 
     const decoded = importCircuitFromBase64(encoded);
 
     expect(decoded).not.toBeNull();
-    expect(decoded!.components).toHaveLength(2);
-    expect(decoded!.components[0].type).toBe("and-gate");
-    expect(decoded!.components[1].type).toBe("switch");
+    expect(decoded?.components).toHaveLength(2);
+    expect(decoded?.components[0].type).toBe("and-gate");
+    expect(decoded?.components[1].type).toBe("switch");
   });
 
   it("new format: URL is URL-safe (no +/=/)", () => {
@@ -334,7 +390,14 @@ describe("exportCircuitToBase64 / importCircuitFromBase64 (binary+deflate)", () 
     // Simulate an old-format URL: JSON → Base64 URL-safe
     const legacyCircuit = {
       version: 2,
-      components: [{ id: "comp-0", type: "and-gate", position: { x: 100, y: 200 }, state: {} }],
+      components: [
+        {
+          id: "comp-0",
+          type: "and-gate",
+          position: { x: 100, y: 200 },
+          state: {},
+        },
+      ],
       wireSegments: [],
       junctions: [],
       _nextId: 1,
@@ -343,12 +406,15 @@ describe("exportCircuitToBase64 / importCircuitFromBase64 (binary+deflate)", () 
     };
     const json = JSON.stringify(legacyCircuit);
     // Encode as UTF-8 bytes then Base64 URL-safe (old format)
-    const legacyEncoded = btoa(json).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+    const legacyEncoded = btoa(json)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=/g, "");
 
     const decoded = importCircuitFromBase64(legacyEncoded);
     expect(decoded).not.toBeNull();
-    expect(decoded!.components).toHaveLength(1);
-    expect(decoded!.components[0].type).toBe("and-gate");
+    expect(decoded?.components).toHaveLength(1);
+    expect(decoded?.components[0].type).toBe("and-gate");
   });
 });
 
@@ -373,7 +439,7 @@ describe("generateShareUrl", () => {
     expect(encoded).not.toBeNull();
     const decoded = importCircuitFromBase64(encoded!);
     expect(decoded).not.toBeNull();
-    expect(decoded!.components).toHaveLength(1);
+    expect(decoded?.components).toHaveLength(1);
   });
 
   it("generates URL-safe URLs (no problematic characters)", () => {
@@ -397,9 +463,9 @@ describe("round-trip sharing with all component types", () => {
     const decoded = importCircuitFromBase64(encoded);
 
     expect(decoded).not.toBeNull();
-    expect(decoded!.components).toHaveLength(1);
-    expect(decoded!.components[0].type).toBe("nand-gate");
-    expect(decoded!.components[0].position).toEqual({ x: 100, y: 200 });
+    expect(decoded?.components).toHaveLength(1);
+    expect(decoded?.components[0].type).toBe("nand-gate");
+    expect(decoded?.components[0].position).toEqual({ x: 100, y: 200 });
   });
 
   it("round-trips circuit with NOR gate", () => {
@@ -410,9 +476,9 @@ describe("round-trip sharing with all component types", () => {
     const decoded = importCircuitFromBase64(encoded);
 
     expect(decoded).not.toBeNull();
-    expect(decoded!.components).toHaveLength(1);
-    expect(decoded!.components[0].type).toBe("nor-gate");
-    expect(decoded!.components[0].position).toEqual({ x: 150, y: 250 });
+    expect(decoded?.components).toHaveLength(1);
+    expect(decoded?.components[0].type).toBe("nor-gate");
+    expect(decoded?.components[0].position).toEqual({ x: 150, y: 250 });
   });
 
   it("round-trips circuit with XOR gate", () => {
@@ -423,9 +489,9 @@ describe("round-trip sharing with all component types", () => {
     const decoded = importCircuitFromBase64(encoded);
 
     expect(decoded).not.toBeNull();
-    expect(decoded!.components).toHaveLength(1);
-    expect(decoded!.components[0].type).toBe("xor-gate");
-    expect(decoded!.components[0].position).toEqual({ x: 200, y: 300 });
+    expect(decoded?.components).toHaveLength(1);
+    expect(decoded?.components[0].type).toBe("xor-gate");
+    expect(decoded?.components[0].position).toEqual({ x: 200, y: 300 });
   });
 
   it("round-trips circuit with XNOR gate", () => {
@@ -436,9 +502,9 @@ describe("round-trip sharing with all component types", () => {
     const decoded = importCircuitFromBase64(encoded);
 
     expect(decoded).not.toBeNull();
-    expect(decoded!.components).toHaveLength(1);
-    expect(decoded!.components[0].type).toBe("xnor-gate");
-    expect(decoded!.components[0].position).toEqual({ x: 250, y: 350 });
+    expect(decoded?.components).toHaveLength(1);
+    expect(decoded?.components[0].type).toBe("xnor-gate");
+    expect(decoded?.components[0].position).toEqual({ x: 250, y: 350 });
   });
 
   it("round-trips circuit with all 9 component types", () => {
@@ -457,12 +523,12 @@ describe("round-trip sharing with all component types", () => {
     const decoded = importCircuitFromBase64(encoded);
 
     expect(decoded).not.toBeNull();
-    expect(decoded!.components).toHaveLength(9);
-    expect(decoded!.components[0].type).toBe("and-gate");
-    expect(decoded!.components[5].type).toBe("nand-gate");
-    expect(decoded!.components[6].type).toBe("nor-gate");
-    expect(decoded!.components[7].type).toBe("xor-gate");
-    expect(decoded!.components[8].type).toBe("xnor-gate");
+    expect(decoded?.components).toHaveLength(9);
+    expect(decoded?.components[0].type).toBe("and-gate");
+    expect(decoded?.components[5].type).toBe("nand-gate");
+    expect(decoded?.components[6].type).toBe("nor-gate");
+    expect(decoded?.components[7].type).toBe("xor-gate");
+    expect(decoded?.components[8].type).toBe("xnor-gate");
   });
 
   it("round-trips circuit with new gates and wires", () => {
@@ -479,9 +545,9 @@ describe("round-trip sharing with all component types", () => {
     const decoded = importCircuitFromBase64(encoded);
 
     expect(decoded).not.toBeNull();
-    expect(decoded!.components).toHaveLength(2);
-    expect(decoded!.components[1].type).toBe("nand-gate");
-    expect(decoded!.wireSegments).toHaveLength(1);
+    expect(decoded?.components).toHaveLength(2);
+    expect(decoded?.components[1].type).toBe("nand-gate");
+    expect(decoded?.wireSegments).toHaveLength(1);
   });
 
   it("full share URL round-trip with new gates", () => {
@@ -496,9 +562,9 @@ describe("round-trip sharing with all component types", () => {
     expect(encoded).not.toBeNull();
     const decoded = importCircuitFromBase64(encoded!);
     expect(decoded).not.toBeNull();
-    expect(decoded!.components).toHaveLength(2);
-    expect(decoded!.components[0].type).toBe("xor-gate");
-    expect(decoded!.components[1].type).toBe("xnor-gate");
+    expect(decoded?.components).toHaveLength(2);
+    expect(decoded?.components[0].type).toBe("xor-gate");
+    expect(decoded?.components[1].type).toBe("xnor-gate");
   });
 });
 
@@ -520,8 +586,8 @@ describe("negative coordinates (v6 signed Int16)", () => {
     const result = deserializeFromBinary(bytes);
 
     expect(result).not.toBeNull();
-    expect(result!.components[0].position).toEqual({ x: -100, y: -200 });
-    expect(result!.components[1].position).toEqual({ x: -50, y: 300 });
+    expect(result?.components[0].position).toEqual({ x: -100, y: -200 });
+    expect(result?.components[1].position).toEqual({ x: -50, y: 300 });
   });
 
   it("round-trips wire endpoints of type 'point' at negative positions", () => {
@@ -537,9 +603,9 @@ describe("negative coordinates (v6 signed Int16)", () => {
     const result = deserializeFromBinary(bytes);
 
     expect(result).not.toBeNull();
-    expect(result!.wireSegments).toHaveLength(1);
-    const from = result!.wireSegments[0].from;
-    const to = result!.wireSegments[0].to;
+    expect(result?.wireSegments).toHaveLength(1);
+    const from = result?.wireSegments[0].from;
+    const to = result?.wireSegments[0].to;
     expect(from).toEqual({ type: "point", x: -150, y: -80 });
     expect(to).toEqual({ type: "point", x: -50, y: -30 });
   });
@@ -560,8 +626,8 @@ describe("negative coordinates (v6 signed Int16)", () => {
     const result = deserializeFromBinary(bytes);
 
     expect(result).not.toBeNull();
-    expect(result!.junctions).toHaveLength(1);
-    expect(result!.junctions[0].position).toEqual({ x: -200, y: -200 });
+    expect(result?.junctions).toHaveLength(1);
+    expect(result?.junctions[0].position).toEqual({ x: -200, y: -200 });
   });
 
   it("round-trips full Base64 share with negative coordinates", () => {
@@ -578,9 +644,9 @@ describe("negative coordinates (v6 signed Int16)", () => {
     const decoded = importCircuitFromBase64(encoded);
 
     expect(decoded).not.toBeNull();
-    expect(decoded!.components[0].position).toEqual({ x: -500, y: -400 });
-    expect(decoded!.components[1].position).toEqual({ x: 200, y: -100 });
-    const to = decoded!.wireSegments[0].to;
+    expect(decoded?.components[0].position).toEqual({ x: -500, y: -400 });
+    expect(decoded?.components[1].position).toEqual({ x: 200, y: -100 });
+    const to = decoded?.wireSegments[0].to;
     expect(to).toEqual({ type: "point", x: -300, y: -250 });
   });
 
@@ -594,9 +660,9 @@ describe("negative coordinates (v6 signed Int16)", () => {
     const result = deserializeFromBinary(bytes);
 
     expect(result).not.toBeNull();
-    expect(result!.components[0].position).toEqual({ x: 0, y: 0 });
-    expect(result!.components[1].position).toEqual({ x: -1000, y: 500 });
-    expect(result!.components[2].position).toEqual({ x: 32000, y: -32000 });
+    expect(result?.components[0].position).toEqual({ x: 0, y: 0 });
+    expect(result?.components[1].position).toEqual({ x: -1000, y: 500 });
+    expect(result?.components[2].position).toEqual({ x: 32000, y: -32000 });
   });
 
   it("round-trips wire waypoints at negative positions", () => {
@@ -607,14 +673,17 @@ describe("negative coordinates (v6 signed Int16)", () => {
       state,
       { type: "pin", componentId: sw.id, pinIndex: 0 },
       { type: "pin", componentId: gate.id, pinIndex: 0 },
-      [{ x: -100, y: -200 }, { x: 0, y: -200 }],
+      [
+        { x: -100, y: -200 },
+        { x: 0, y: -200 },
+      ],
     );
 
     const bytes = serializeToBinary(state);
     const result = deserializeFromBinary(bytes);
 
     expect(result).not.toBeNull();
-    expect(result!.wireSegments[0].waypoints).toEqual([
+    expect(result?.wireSegments[0].waypoints).toEqual([
       { x: -100, y: -200 },
       { x: 0, y: -200 },
     ]);
@@ -628,6 +697,6 @@ describe("negative coordinates (v6 signed Int16)", () => {
     const result = deserializeFromBinary(bytes);
 
     expect(result).not.toBeNull();
-    expect(result!.components[0].position).toEqual({ x: -32768, y: 32767 });
+    expect(result?.components[0].position).toEqual({ x: -32768, y: 32767 });
   });
 });

@@ -1,5 +1,5 @@
-import type { EditorState, Net, SignalValue, WireEndpoint } from "@/core/types";
 import { getComponentDef } from "@/core/registry";
+import type { EditorState, Net, SignalValue, WireEndpoint } from "@/core/types";
 
 interface UnionFind {
   parent: Map<string, string>;
@@ -70,7 +70,7 @@ export function buildNets(state: EditorState): Net[] {
     if (!netMap.has(root)) {
       netMap.set(root, new Set());
     }
-    netMap.get(root)!.add(ep);
+    netMap.get(root)?.add(ep);
   }
 
   // Convert to Net objects
@@ -143,11 +143,11 @@ export function resolveNetSignal(net: Net, state: EditorState): SignalValue {
   const firstValue = drivers[0];
   for (const value of drivers) {
     if (value !== firstValue) {
-      if (value === 'E' || firstValue === 'E') {
-        return 'E'; // Error propagates
+      if (value === "E" || firstValue === "E") {
+        return "E"; // Error propagates
       }
       // Multiple drivers with conflicting values
-      return 'E';
+      return "E";
     }
   }
 
@@ -169,8 +169,8 @@ function evaluateOneIteration(state: EditorState): void {
       const absPinIndex = def.pins.indexOf(inputPins[pinIdx]);
       const net = state.nets.find((n) =>
         n.pinReferences.some(
-          (p) => p.componentId === comp.id && p.pinIndex === absPinIndex
-        )
+          (p) => p.componentId === comp.id && p.pinIndex === absPinIndex,
+        ),
       );
       return net?.signalValue ?? 0;
     });

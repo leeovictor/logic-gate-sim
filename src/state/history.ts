@@ -1,4 +1,4 @@
-import type { EditorState, CircuitSnapshot } from "@/core/types";
+import type { CircuitSnapshot, EditorState } from "@/core/types";
 
 const MAX_HISTORY_SIZE = 100;
 

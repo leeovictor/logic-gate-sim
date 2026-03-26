@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import { clearAllPinValues, evaluateCircuit } from "@/core/simulation";
+import type { SignalValue } from "@/core/types";
 import {
-  createEditorState,
   addComponent,
   addWire,
+  createEditorState,
   toggleSwitchValue,
 } from "@/state";
-import { evaluateCircuit, clearAllPinValues } from "@/core/simulation";
-import type { SignalValue } from "@/core/types";
 
 // Helper: create a basic circuit: Switch → AND ← Switch → Light
 function basicAndCircuit() {
@@ -17,11 +17,23 @@ function basicAndCircuit() {
   const light = addComponent(state, "light", { x: 250, y: 50 });
 
   // sw1 output(pin 0) → gate input 0 (pin 0)
-  addWire(state, { type: "pin", componentId: sw1.id, pinIndex: 0 }, { type: "pin", componentId: gate.id, pinIndex: 0 });
+  addWire(
+    state,
+    { type: "pin", componentId: sw1.id, pinIndex: 0 },
+    { type: "pin", componentId: gate.id, pinIndex: 0 },
+  );
   // sw2 output(pin 0) → gate input 1 (pin 1)
-  addWire(state, { type: "pin", componentId: sw2.id, pinIndex: 0 }, { type: "pin", componentId: gate.id, pinIndex: 1 });
+  addWire(
+    state,
+    { type: "pin", componentId: sw2.id, pinIndex: 0 },
+    { type: "pin", componentId: gate.id, pinIndex: 1 },
+  );
   // gate output(pin 2) → light input (pin 0)
-  addWire(state, { type: "pin", componentId: gate.id, pinIndex: 2 }, { type: "pin", componentId: light.id, pinIndex: 0 });
+  addWire(
+    state,
+    { type: "pin", componentId: gate.id, pinIndex: 2 },
+    { type: "pin", componentId: light.id, pinIndex: 0 },
+  );
 
   return { state, sw1, sw2, gate, light };
 }
@@ -29,7 +41,7 @@ function basicAndCircuit() {
 describe("evaluateCircuit", () => {
   it("propaga sinais: ambos switches OFF → light OFF", () => {
     const { state, gate, light } = basicAndCircuit();
-    
+
     evaluateCircuit(state);
 
     const gatePins = gate.state.pinValues as number[];
@@ -41,7 +53,7 @@ describe("evaluateCircuit", () => {
 
   it("propaga sinais: um switch ON → light OFF (AND requer ambos)", () => {
     const { state, sw1, gate, light } = basicAndCircuit();
-    
+
     sw1.state.value = 1;
     evaluateCircuit(state);
 
@@ -54,7 +66,7 @@ describe("evaluateCircuit", () => {
 
   it("propaga sinais: ambos switches ON → light ON", () => {
     const { state, sw1, sw2, gate, light } = basicAndCircuit();
-    
+
     sw1.state.value = 1;
     sw2.state.value = 1;
     evaluateCircuit(state);
@@ -72,8 +84,12 @@ describe("evaluateCircuit", () => {
     const gate = addComponent(state, "and-gate", { x: 100, y: 0 });
 
     // Only connect sw to input 0, leave input 1 disconnected
-    addWire(state, { type: "pin", componentId: sw.id, pinIndex: 0 }, { type: "pin", componentId: gate.id, pinIndex: 0 });
-    
+    addWire(
+      state,
+      { type: "pin", componentId: sw.id, pinIndex: 0 },
+      { type: "pin", componentId: gate.id, pinIndex: 0 },
+    );
+
     sw.state.value = 1;
     evaluateCircuit(state);
 
@@ -93,15 +109,33 @@ describe("evaluateCircuit", () => {
     const light = addComponent(state, "light", { x: 300, y: 100 });
 
     // sw1 → gate1 input 0, sw2 → gate1 input 1
-    addWire(state, { type: "pin", componentId: sw1.id, pinIndex: 0 }, { type: "pin", componentId: gate1.id, pinIndex: 0 });
-    addWire(state, { type: "pin", componentId: sw2.id, pinIndex: 0 }, { type: "pin", componentId: gate1.id, pinIndex: 1 });
+    addWire(
+      state,
+      { type: "pin", componentId: sw1.id, pinIndex: 0 },
+      { type: "pin", componentId: gate1.id, pinIndex: 0 },
+    );
+    addWire(
+      state,
+      { type: "pin", componentId: sw2.id, pinIndex: 0 },
+      { type: "pin", componentId: gate1.id, pinIndex: 1 },
+    );
     // gate1 output → gate2 input 0, sw3 → gate2 input 1
-    addWire(state, { type: "pin", componentId: gate1.id, pinIndex: 2 }, { type: "pin", componentId: gate2.id, pinIndex: 0 });
-    addWire(state, { type: "pin", componentId: sw3.id, pinIndex: 0 }, { type: "pin", componentId: gate2.id, pinIndex: 1 });
+    addWire(
+      state,
+      { type: "pin", componentId: gate1.id, pinIndex: 2 },
+      { type: "pin", componentId: gate2.id, pinIndex: 0 },
+    );
+    addWire(
+      state,
+      { type: "pin", componentId: sw3.id, pinIndex: 0 },
+      { type: "pin", componentId: gate2.id, pinIndex: 1 },
+    );
     // gate2 output → light
-    addWire(state, { type: "pin", componentId: gate2.id, pinIndex: 2 }, { type: "pin", componentId: light.id, pinIndex: 0 });
-
-    
+    addWire(
+      state,
+      { type: "pin", componentId: gate2.id, pinIndex: 2 },
+      { type: "pin", componentId: light.id, pinIndex: 0 },
+    );
 
     // All off → light off
     evaluateCircuit(state);
@@ -125,10 +159,17 @@ describe("evaluateCircuit", () => {
     const gate2 = addComponent(state, "and-gate", { x: 200, y: 0 });
 
     // Create cycle: gate1 output → gate2 input 0, gate2 output → gate1 input 0
-    addWire(state, { type: "pin", componentId: gate1.id, pinIndex: 2 }, { type: "pin", componentId: gate2.id, pinIndex: 0 });
-    addWire(state, { type: "pin", componentId: gate2.id, pinIndex: 2 }, { type: "pin", componentId: gate1.id, pinIndex: 0 });
+    addWire(
+      state,
+      { type: "pin", componentId: gate1.id, pinIndex: 2 },
+      { type: "pin", componentId: gate2.id, pinIndex: 0 },
+    );
+    addWire(
+      state,
+      { type: "pin", componentId: gate2.id, pinIndex: 2 },
+      { type: "pin", componentId: gate1.id, pinIndex: 0 },
+    );
 
-    
     evaluateCircuit(state);
 
     // Cycle converges: both gates stabilize at [0, 0, 0] (no inputs, so outputs are 0)
@@ -147,11 +188,22 @@ describe("evaluateCircuit", () => {
     // Create a junction and connect both switches to it
     state.junctions.push({ id: "junc-0", position: { x: 150, y: 50 } });
 
-    addWire(state, { type: "pin", componentId: sw1.id, pinIndex: 0 }, { type: "junction", junctionId: "junc-0" });
-    addWire(state, { type: "junction", junctionId: "junc-0" }, { type: "pin", componentId: light.id, pinIndex: 0 });
-    addWire(state, { type: "pin", componentId: sw2.id, pinIndex: 0 }, { type: "junction", junctionId: "junc-0" });
+    addWire(
+      state,
+      { type: "pin", componentId: sw1.id, pinIndex: 0 },
+      { type: "junction", junctionId: "junc-0" },
+    );
+    addWire(
+      state,
+      { type: "junction", junctionId: "junc-0" },
+      { type: "pin", componentId: light.id, pinIndex: 0 },
+    );
+    addWire(
+      state,
+      { type: "pin", componentId: sw2.id, pinIndex: 0 },
+      { type: "junction", junctionId: "junc-0" },
+    );
 
-    
     sw1.state.value = 1;
     sw2.state.value = 0;
     evaluateCircuit(state);
@@ -168,11 +220,22 @@ describe("evaluateCircuit", () => {
 
     state.junctions.push({ id: "junc-0", position: { x: 150, y: 50 } });
 
-    addWire(state, { type: "pin", componentId: sw1.id, pinIndex: 0 }, { type: "junction", junctionId: "junc-0" });
-    addWire(state, { type: "junction", junctionId: "junc-0" }, { type: "pin", componentId: light.id, pinIndex: 0 });
-    addWire(state, { type: "pin", componentId: sw2.id, pinIndex: 0 }, { type: "junction", junctionId: "junc-0" });
+    addWire(
+      state,
+      { type: "pin", componentId: sw1.id, pinIndex: 0 },
+      { type: "junction", junctionId: "junc-0" },
+    );
+    addWire(
+      state,
+      { type: "junction", junctionId: "junc-0" },
+      { type: "pin", componentId: light.id, pinIndex: 0 },
+    );
+    addWire(
+      state,
+      { type: "pin", componentId: sw2.id, pinIndex: 0 },
+      { type: "junction", junctionId: "junc-0" },
+    );
 
-    
     sw1.state.value = 1;
     sw2.state.value = 1;
     evaluateCircuit(state);
