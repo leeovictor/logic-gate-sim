@@ -1,4 +1,4 @@
-import { getThemeColors } from "../theme";
+import { getThemeColors, FONT_FAMILY } from "../theme";
 import type { ComponentDef } from "../types";
 
 export const switchComponent: ComponentDef = {
@@ -30,7 +30,7 @@ export const switchComponent: ComponentDef = {
 
     // Value text
     ctx.fillStyle = colors.textColor;
-    ctx.font = "bold 13px monospace";
+    ctx.font = `bold 13px ${FONT_FAMILY}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(String(value ? 1 : 0), x + bodyW / 2, y + h / 2);

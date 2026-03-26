@@ -52,6 +52,8 @@ if (urlLoaded) {
   if (urlLoaded.viewport) {
     state.viewport = { ...urlLoaded.viewport };
   }
+
+  window.history.replaceState(null, "", window.location.pathname); // Clear URL params after loading
 } else {
   // Fall back to localStorage
   const loaded = loadCircuit();

@@ -1,4 +1,4 @@
-import { getThemeColors } from "../theme";
+import { getThemeColors, FONT_FAMILY } from "../theme";
 import type { ComponentDef } from "../types";
 
 export const lightComponent: ComponentDef = {
@@ -51,7 +51,7 @@ export const lightComponent: ComponentDef = {
 
     // Value text
     ctx.fillStyle = colors.textColor;
-    ctx.font = "bold 13px monospace";
+    ctx.font = `bold 13px ${FONT_FAMILY}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(String(isError ? "E" : isOn ? 1 : 0), centerX, centerY);

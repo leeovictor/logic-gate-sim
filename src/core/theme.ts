@@ -1,3 +1,6 @@
+/** Typography token — used in both CSS (via `--font-family`) and canvas 2D context font strings. */
+export const FONT_FAMILY = "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+
 export interface ThemeColors {
   /** Canvas background fill */
   canvasBackground: string;
