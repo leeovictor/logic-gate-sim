@@ -3,7 +3,7 @@
 A browser-based digital logic circuit editor and simulator built with TypeScript and Vite. Design circuits by placing logic gates on a canvas, connecting them with wires, and watching signals propagate in real time — all in the browser with zero installation. 
 
 - [**Online demo**](https://leeovictor.github.io/logic-gate-sim/)
-- [**Online demo with circuit**](https://leeovictor.github.io/logic-gate-sim/?c=JYyxDcJQDETvbJMAmYOGBWgA_RaJCVIxAQUtDS0bINFSIJgDBkifXXJOLJ39bJ9dNWhg6HHnAfXTNwQe_iJiG4WMXXwJf9ta-WMn0jq_GKKNm9FXfjV48R8Yx_hDx3pmypglTYLmWZn7RM9ZJawT5mOjCNnlSGVkHXEpLaS9n9l6IQY)
+- [**Online demo with circuit**](https://leeovictor.github.io/logic-gate-sim/?c=LY47TgNBEESru2dZ79qAjcB8JEgQATcg4wzIEBLwCQiQCDgAAefgBMABSPgYiYCIwAGIgADLqa_gqrFn1N01r6tnplzCGhKWsY0S9hYDg73EsQNnad3hP2nDkQ6KHUc8-Jch7v2K_DA-DN6LC4f14xuw1zgx4Dxtkv-mLUPqFbv0P_oAmr0mP4pPKF_S2QCf4ta7yKtgj0VRzmruzFFTKBriGebEj0y1hCzcIRI8JYkORa1Wm6kSWaCNU4q2rmCtxRepOavoiLNWGqx4Z1OGOguSJkVLpMXTPOtK_Fk3brwb_1iNW3sejt_30qh_d_q0PwE)
 
 ## Features
 
