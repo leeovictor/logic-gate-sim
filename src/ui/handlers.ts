@@ -345,6 +345,7 @@ export function handleCanvasMouseUp(
   // Handle pan end
   if (panStart !== null) {
     handlePanEnd(state);
+    ctx.save();
     return;
   }
 

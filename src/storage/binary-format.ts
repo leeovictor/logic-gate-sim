@@ -3,6 +3,7 @@ import type {
   ComponentType,
   EditorState,
   PlacedComponent,
+  Viewport,
   WireJunction,
   WireSegment,
 } from "@/core/types";
@@ -23,7 +24,7 @@ const COMPONENT_TYPES: ComponentType[] = [
   "xnor-gate",
 ];
 
-const FORMAT_VERSION = 6;
+const FORMAT_VERSION = 7;
 
 // ---- Base64 URL-safe helpers ----
 
@@ -138,8 +139,9 @@ function readWireEndpoint(
 }
 
 /**
- * Serialize EditorState to compact binary format (v4).
- * v4 adds waypoint support to wire segments.
+ * Serialize EditorState to compact binary format (v7).
+ * v7 adds viewport persistence (panX, panY, zoom as Float32LE).
+ * v4 added waypoint support to wire segments.
  */
 export function serializeToBinary(state: EditorState): Uint8Array {
   const componentIds = state.components.map((c) => c.id);
@@ -157,6 +159,7 @@ export function serializeToBinary(state: EditorState): Uint8Array {
     }
   }
   size += state.junctions.length * 4;
+  size += 12; // viewport: panX (4) + panY (4) + zoom (4) as Float32LE
 
   const buffer = new ArrayBuffer(size);
   const view = new DataView(buffer);
@@ -221,23 +224,33 @@ export function serializeToBinary(state: EditorState): Uint8Array {
     offset += 2;
   }
 
+  // Viewport (v7: panX, panY, zoom as Float32LE)
+  view.setFloat32(offset, state.viewport.panX, true);
+  offset += 4;
+  view.setFloat32(offset, state.viewport.panY, true);
+  offset += 4;
+  view.setFloat32(offset, state.viewport.zoom, true);
+  offset += 4;
+
   return new Uint8Array(buffer);
 }
 
 /**
- * Deserialize binary format (v3 or v4) to SerializedCircuitV2.
+ * Deserialize binary format (v3 or later) to SerializedCircuitV2.
  * v3: no waypoints
  * v4: includes waypoints in wire segments
+ * v6: uses signed Int16 for positions (negative coords support)
+ * v7: includes viewport (panX, panY, zoom as Float32LE)
  */
 export function deserializeFromBinary(
   bytes: Uint8Array,
-): SerializedCircuitV2 | null {
+): (SerializedCircuitV2 & { viewport?: Viewport }) | null {
   try {
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     let offset = 0;
 
     const version = view.getUint8(offset);
-    if (version < 3 || version > 6) return null;
+    if (version < 3 || version > 7) return null;
     offset++;
 
     // v6+ uses signed Int16 for positions; v3-5 used unsigned Uint16
@@ -323,10 +336,19 @@ export function deserializeFromBinary(
       junctions.push({ id: `junc-${i}`, position: { x, y } });
     }
 
-    // Skip simulation mode byte if present (backward compatibility)
-    // Old formats may have a trailing byte for simulationMode — just ignore it.
+    let viewport: Viewport | undefined;
+    // v7+: read viewport (panX, panY, zoom as Float32LE)
+    if (version >= 7) {
+      const panX = view.getFloat32(offset, true);
+      offset += 4;
+      const panY = view.getFloat32(offset, true);
+      offset += 4;
+      const zoom = view.getFloat32(offset, true);
+      offset += 4;
+      viewport = { panX, panY, zoom };
+    }
 
-    return {
+    const result: SerializedCircuitV2 & { viewport?: Viewport } = {
       version: 2,
       components,
       wireSegments,
@@ -335,6 +357,12 @@ export function deserializeFromBinary(
       _nextWireId: nextWireId,
       _nextJunctionId: nextJunctionId,
     };
+
+    if (viewport) {
+      result.viewport = viewport;
+    }
+
+    return result;
   } catch {
     return null;
   }
@@ -357,7 +385,7 @@ export function exportCircuitToBase64(state: EditorState): string {
  */
 export function importCircuitFromBase64(
   encoded: string,
-): SerializedCircuitV2 | null {
+): (SerializedCircuitV2 & { viewport?: Viewport }) | null {
   try {
     const bytes = base64UrlToUint8Array(encoded);
 
@@ -383,7 +411,7 @@ export function importCircuitFromBase64(
       const migrated = migrateV1toV2(data);
       return { version: 2, ...migrated };
     }
-    return data as SerializedCircuitV2;
+    return data as SerializedCircuitV2 & { viewport?: Viewport };
   } catch {
     return null;
   }

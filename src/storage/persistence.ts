@@ -1,6 +1,7 @@
 import type {
   EditorState,
   PlacedComponent,
+  Viewport,
   Wire,
   WireJunction,
   WireSegment,
@@ -26,15 +27,29 @@ export interface SerializedCircuitV2 {
   _nextId: number;
   _nextWireId: number;
   _nextJunctionId: number;
+  viewport?: Viewport;
 }
 
-type SerializedCircuit = SerializedCircuitV1 | SerializedCircuitV2;
+/** v3 format with viewport persistence */
+export interface SerializedCircuitV3 {
+  version: 3;
+  components: PlacedComponent[];
+  wireSegments: WireSegment[];
+  junctions: WireJunction[];
+  _nextId: number;
+  _nextWireId: number;
+  _nextJunctionId: number;
+  viewport: Viewport;
+}
+
+type SerializedCircuit = SerializedCircuitV1 | SerializedCircuitV2 | SerializedCircuitV3;
 
 /**
- * Serialize the editor state to a SerializedCircuitV2 object.
+ * Serialize the editor state to a SerializedCircuitV3 object.
  * Strips runtime pin values and creates a clean snapshot for storage/export.
+ * Includes the current viewport state for persistence.
  */
-function serializeCircuit(state: EditorState): SerializedCircuitV2 {
+function serializeCircuit(state: EditorState): SerializedCircuitV3 {
   const components = state.components.map((c) => ({
     id: c.id,
     type: c.type,
@@ -42,14 +57,15 @@ function serializeCircuit(state: EditorState): SerializedCircuitV2 {
     state: stripPinValues(c.state),
   }));
 
-  const serialized: SerializedCircuitV2 = {
-    version: 2,
+  const serialized: SerializedCircuitV3 = {
+    version: 3,
     components,
     wireSegments: state.wireSegments.map((w) => ({ ...w })),
     junctions: state.junctions.map((j) => ({ ...j })),
     _nextId: state._nextId,
     _nextWireId: state._nextWireId,
     _nextJunctionId: state._nextJunctionId,
+    viewport: { ...state.viewport },
   };
 
   return serialized;
@@ -65,7 +81,7 @@ export function saveCircuit(state: EditorState): void {
   }
 }
 
-export function loadCircuit(): Pick<
+export function loadCircuit(): (Pick<
   SerializedCircuitV2,
   | "components"
   | "wireSegments"
@@ -73,7 +89,7 @@ export function loadCircuit(): Pick<
   | "_nextId"
   | "_nextWireId"
   | "_nextJunctionId"
-> | null {
+> & { viewport?: Viewport }) | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
@@ -94,6 +110,19 @@ export function loadCircuit(): Pick<
         _nextId: data._nextId,
         _nextWireId: data._nextWireId,
         _nextJunctionId: data._nextJunctionId,
+        viewport: data.viewport,
+      };
+    }
+
+    if (data.version === 3) {
+      return {
+        components: data.components,
+        wireSegments: data.wireSegments,
+        junctions: data.junctions,
+        _nextId: data._nextId,
+        _nextWireId: data._nextWireId,
+        _nextJunctionId: data._nextJunctionId,
+        viewport: data.viewport,
       };
     }
 
@@ -107,6 +136,7 @@ export function loadCircuit(): Pick<
  * Migrate circuit data from v1 to v2 format.
  * Converts old Wire[] (point-to-point) to WireSegment[] (flexible endpoints).
  * v2 load will not have waypoints, defaulting to undefined (direct segment).
+ * Returns v2 data with default viewport (no viewport in v1).
  */
 export function migrateV1toV2(
   data: SerializedCircuitV1,
@@ -118,7 +148,7 @@ export function migrateV1toV2(
   | "_nextId"
   | "_nextWireId"
   | "_nextJunctionId"
-> {
+> & { viewport?: Viewport } {
   // Convert old wires to new wire segments
   const wireSegments: WireSegment[] = data.wires.map((oldWire) => ({
     id: oldWire.id,
@@ -142,6 +172,7 @@ export function migrateV1toV2(
     _nextId: data._nextId,
     _nextWireId: data._nextWireId,
     _nextJunctionId: 0,
+    // v1 has no viewport, so it's undefined (will use default in main.ts)
   };
 }
 
@@ -156,8 +187,8 @@ export function isValidCircuit(data: unknown): data is SerializedCircuit {
   if (typeof data !== "object" || data === null) return false;
   const obj = data as Record<string, unknown>;
 
-  // Check version is 1 or 2
-  if (obj.version !== 1 && obj.version !== 2) return false;
+  // Check version is 1, 2, or 3
+  if (obj.version !== 1 && obj.version !== 2 && obj.version !== 3) return false;
 
   if (!Array.isArray(obj.components)) return false;
   if (typeof obj._nextId !== "number") return false;
@@ -169,11 +200,21 @@ export function isValidCircuit(data: unknown): data is SerializedCircuit {
     return true;
   }
 
-  // v2 specific
-  if (obj.version === 2) {
+  // v2 and v3 specific
+  if (obj.version === 2 || obj.version === 3) {
     if (!Array.isArray(obj.wireSegments)) return false;
     if (!Array.isArray(obj.junctions)) return false;
     if (typeof obj._nextJunctionId !== "number") return false;
+    
+    // v3 requires viewport, v2 makes it optional
+    if (obj.version === 3) {
+      if (!obj.viewport || typeof obj.viewport !== "object") return false;
+      const vp = obj.viewport as Record<string, unknown>;
+      if (typeof vp.panX !== "number" || typeof vp.panY !== "number" || typeof vp.zoom !== "number") {
+        return false;
+      }
+    }
+    
     return true;
   }
 

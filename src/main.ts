@@ -46,6 +46,10 @@ if (urlLoaded) {
   state._nextId = urlLoaded._nextId;
   state._nextWireId = urlLoaded._nextWireId;
   state._nextJunctionId = urlLoaded._nextJunctionId;
+  // Apply loaded viewport if available
+  if (urlLoaded.viewport) {
+    state.viewport = { ...urlLoaded.viewport };
+  }
 } else {
   // Fall back to localStorage
   const loaded = loadCircuit();
@@ -56,6 +60,10 @@ if (urlLoaded) {
     state._nextId = loaded._nextId;
     state._nextWireId = loaded._nextWireId;
     state._nextJunctionId = loaded._nextJunctionId;
+    // Apply loaded viewport if available
+    if (loaded.viewport) {
+      state.viewport = { ...loaded.viewport };
+    }
   }
 }
 
@@ -137,6 +145,7 @@ window.addEventListener("keydown", (e) => {
   if (e.key === "Home") {
     e.preventDefault();
     resetViewport(state);
+    save();
   }
   if (e.key === "Delete") {
     pushSnapshot(history, state);
@@ -189,6 +198,7 @@ canvas.addEventListener(
   "wheel",
   (e) => {
     handleWheel(state, e);
+    save();
   },
   { passive: false },
 );

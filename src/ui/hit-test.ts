@@ -112,7 +112,7 @@ export function hitTestJunction(
 export function hitTestPin(
   state: EditorState,
   point: Point,
-  radius: number = 20,
+  radius: number = 28,
 ): { componentId: string; pinIndex: number } | null {
   // Iterate in reverse for z-order (last added = on top)
   for (let i = state.components.length - 1; i >= 0; i--) {

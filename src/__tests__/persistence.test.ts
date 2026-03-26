@@ -250,4 +250,61 @@ describe("saveCircuit / loadCircuit", () => {
     expect(loaded).not.toBeNull();
     expect(loaded?.wireSegments[0].waypoints).toBeUndefined();
   });
+
+  it("round-trips circuit v3 with viewport", () => {
+    const state = createEditorState();
+    addComponent(state, "and-gate", { x: 100, y: 200 });
+    state.viewport = { panX: 50, panY: -100, zoom: 2.5 };
+
+    saveCircuit(state);
+    const loaded = loadCircuit();
+
+    expect(loaded).not.toBeNull();
+    expect(loaded?.components).toHaveLength(1);
+    expect(loaded?.viewport).toEqual({ panX: 50, panY: -100, zoom: 2.5 });
+  });
+
+  it("v2 circuit without viewport loads with undefined viewport", () => {
+    storageMock.circuit = JSON.stringify({
+      version: 2,
+      components: [
+        {
+          id: "comp-0",
+          type: "switch",
+          position: { x: 0, y: 0 },
+          state: { value: 0 },
+        },
+      ],
+      wireSegments: [],
+      junctions: [],
+      _nextId: 1,
+      _nextWireId: 0,
+      _nextJunctionId: 0,
+    });
+
+    const loaded = loadCircuit();
+    expect(loaded).not.toBeNull();
+    expect(loaded?.viewport).toBeUndefined();
+  });
+
+  it("migrated v1 circuit returns undefined viewport", () => {
+    storageMock.circuit = JSON.stringify({
+      version: 1,
+      components: [
+        {
+          id: "comp-0",
+          type: "switch",
+          position: { x: 0, y: 0 },
+          state: { value: 0 },
+        },
+      ],
+      wires: [],
+      _nextId: 1,
+      _nextWireId: 0,
+    });
+
+    const loaded = loadCircuit();
+    expect(loaded).not.toBeNull();
+    expect(loaded?.viewport).toBeUndefined();
+  });
 });
