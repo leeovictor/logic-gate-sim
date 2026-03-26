@@ -42,7 +42,10 @@ export interface SerializedCircuitV3 {
   viewport: Viewport;
 }
 
-type SerializedCircuit = SerializedCircuitV1 | SerializedCircuitV2 | SerializedCircuitV3;
+type SerializedCircuit =
+  | SerializedCircuitV1
+  | SerializedCircuitV2
+  | SerializedCircuitV3;
 
 /**
  * Serialize the editor state to a SerializedCircuitV3 object.
@@ -81,15 +84,17 @@ export function saveCircuit(state: EditorState): void {
   }
 }
 
-export function loadCircuit(): (Pick<
-  SerializedCircuitV2,
-  | "components"
-  | "wireSegments"
-  | "junctions"
-  | "_nextId"
-  | "_nextWireId"
-  | "_nextJunctionId"
-> & { viewport?: Viewport }) | null {
+export function loadCircuit():
+  | (Pick<
+      SerializedCircuitV2,
+      | "components"
+      | "wireSegments"
+      | "junctions"
+      | "_nextId"
+      | "_nextWireId"
+      | "_nextJunctionId"
+    > & { viewport?: Viewport })
+  | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
@@ -205,16 +210,20 @@ export function isValidCircuit(data: unknown): data is SerializedCircuit {
     if (!Array.isArray(obj.wireSegments)) return false;
     if (!Array.isArray(obj.junctions)) return false;
     if (typeof obj._nextJunctionId !== "number") return false;
-    
+
     // v3 requires viewport, v2 makes it optional
     if (obj.version === 3) {
       if (!obj.viewport || typeof obj.viewport !== "object") return false;
       const vp = obj.viewport as Record<string, unknown>;
-      if (typeof vp.panX !== "number" || typeof vp.panY !== "number" || typeof vp.zoom !== "number") {
+      if (
+        typeof vp.panX !== "number" ||
+        typeof vp.panY !== "number" ||
+        typeof vp.zoom !== "number"
+      ) {
         return false;
       }
     }
-    
+
     return true;
   }
 

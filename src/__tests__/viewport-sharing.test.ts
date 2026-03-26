@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  addComponent,
-  createEditorState,
-  screenToWorld,
-} from "@/state";
+import { addComponent, createEditorState, screenToWorld } from "@/state";
 import {
   deserializeFromBinary,
   exportCircuitToBase64,
