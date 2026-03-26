@@ -97,7 +97,7 @@ describe("resolveNetSignal", () => {
 
   it("returns driver value for single output driver", () => {
     const state = createEditorState();
-    state.simulationEnabled = true;
+
     const sw = addComponent(state, "switch", { x: 0, y: 0 });
     const light = addComponent(state, "light", { x: 100, y: 0 });
     sw.state.value = 1;
@@ -112,7 +112,7 @@ describe("resolveNetSignal", () => {
 
   it("returns error (E) for multiple drivers with conflicting values", () => {
     const state = createEditorState();
-    state.simulationEnabled = true;
+
     const sw1 = addComponent(state, "switch", { x: 0, y: 0 });
     const sw2 = addComponent(state, "switch", { x: 100, y: 0 });
     const light = addComponent(state, "light", { x: 200, y: 0 });
@@ -138,7 +138,7 @@ describe("resolveNetSignal", () => {
 
   it("returns value when multiple drivers have same value", () => {
     const state = createEditorState();
-    state.simulationEnabled = true;
+
     const sw1 = addComponent(state, "switch", { x: 0, y: 0 });
     const sw2 = addComponent(state, "switch", { x: 100, y: 0 });
     const light = addComponent(state, "light", { x: 200, y: 0 });
@@ -163,7 +163,7 @@ describe("resolveNetSignal", () => {
 
   it("propagates error state from driver", () => {
     const state = createEditorState();
-    state.simulationEnabled = true;
+
     const sw = addComponent(state, "switch", { x: 0, y: 0 });
     const light = addComponent(state, "light", { x: 100, y: 0 });
 
@@ -180,7 +180,7 @@ describe("resolveNetSignal", () => {
 describe("net and error propagation through gates", () => {
   it("AND gate with error input produces error output", () => {
     const state = createEditorState();
-    state.simulationEnabled = true;
+
     const sw1 = addComponent(state, "switch", { x: 0, y: 0 });
     const sw2 = addComponent(state, "switch", { x: 0, y: 100 });
     const gate = addComponent(state, "and-gate", { x: 100, y: 50 });

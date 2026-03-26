@@ -5,12 +5,6 @@ import {
   clearSelection,
   deleteSelected,
   clearPendingWire,
-  toggleSimulation,
-  setSimulationMode,
-  performStep,
-  toggleAutoStep,
-  setStepInterval,
-  resetStep,
   createHistory,
   pushSnapshot,
   popLastSnapshot,
@@ -21,7 +15,7 @@ import {
 } from "@/state";
 import { createToolbar } from "@/ui/toolbar";
 import { drawAll } from "@/ui/renderer";
-import { evaluateCircuit, buildNets, resetStepSimulation } from "@/core/simulation";
+import { evaluateCircuit } from "@/core/simulation";
 import { handleCanvasClick, handleCanvasMouseDown, handleCanvasMouseMove, handleCanvasMouseUp, handleWheel, setSpaceHeld } from "@/ui/handlers";
 import { saveCircuit, loadCircuit } from "@/storage/persistence";
 import { loadFromUrl, copyShareUrl } from "@/storage/sharing";
@@ -46,9 +40,6 @@ if (urlLoaded) {
   state._nextId = urlLoaded._nextId;
   state._nextWireId = urlLoaded._nextWireId;
   state._nextJunctionId = urlLoaded._nextJunctionId;
-  if (urlLoaded.simulationMode) {
-    state.simulationMode = urlLoaded.simulationMode;
-  }
 } else {
   // Fall back to localStorage
   const loaded = loadCircuit();
@@ -59,36 +50,14 @@ if (urlLoaded) {
     state._nextId = loaded._nextId;
     state._nextWireId = loaded._nextWireId;
     state._nextJunctionId = loaded._nextJunctionId;
-    if (loaded.simulationMode) {
-      state.simulationMode = loaded.simulationMode;
-    }
   }
 }
 
-function reEvaluate(structural = true) {
-  if (!state.simulationEnabled) return;
-  if (state.simulationMode === "step") {
-    if (structural) {
-      // Structural change: rebuild nets and reset step counter
-      state.nets = buildNets(state);
-      resetStepSimulation(state);
-    }
-    dispatchStepUpdate();
-  } else {
-    evaluateCircuit(state);
-  }
-}
+// Evaluate circuit on startup
+evaluateCircuit(state);
 
-function dispatchStepUpdate() {
-  state.events.dispatchEvent(
-    new CustomEvent("stepupdate", {
-      detail: {
-        stepCount: state.stepSimulation.stepCount,
-        stable: state.stepSimulation.stable,
-        mode: state.simulationMode,
-      },
-    })
-  );
+function reEvaluate() {
+  evaluateCircuit(state);
 }
 
 function save() {
@@ -102,49 +71,11 @@ const handlerCtx = {
   popSnapshot: () => popLastSnapshot(history),
 };
 
-const stepCallbacks = {
-  onModeToggle: () => {
-    const newMode = state.simulationMode === "instant" ? "step" : "instant";
-    setSimulationMode(state, newMode);
-    if (newMode === "instant") {
-      evaluateCircuit(state);
-    }
-    dispatchStepUpdate();
-  },
-  onStep: () => {
-    performStep(state);
-    dispatchStepUpdate();
-    save();
-  },
-  onPlayPause: () => {
-    toggleAutoStep(state, () => {
-      dispatchStepUpdate();
-    });
-  },
-  onReset: () => {
-    resetStep(state);
-    dispatchStepUpdate();
-  },
-  onSpeedChange: (ms: number) => {
-    setStepInterval(state, ms);
-    // If running, restart with new interval
-    if (state.stepSimulation.running) {
-      toggleAutoStep(state, () => dispatchStepUpdate()); // stop
-      toggleAutoStep(state, () => dispatchStepUpdate()); // restart
-    }
-  },
-};
-
 const toolbar = createToolbar(
   (tool) => {
     setSelectedTool(state, tool);
     clearSelection(state);
     clearPendingWire(state);
-  },
-  () => {
-    toggleSimulation(state);
-    reEvaluate();
-    dispatchStepUpdate();
   },
   state.events,
   async () => {
@@ -156,7 +87,6 @@ const toolbar = createToolbar(
       showToast("Failed to copy link");
     }
   },
-  stepCallbacks,
   (theme) => {
     setTheme(state, theme);
     localStorage.setItem("theme", theme);

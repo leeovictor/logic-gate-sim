@@ -42,8 +42,6 @@ export function drawAll(
   drawGhostPreview(ctx, state);
 
   ctx.restore();
-
-  drawStepOverlay(ctx, state, width);
 }
 
 function drawComponents(ctx: CanvasRenderingContext2D, state: EditorState): void {
@@ -110,7 +108,7 @@ function drawWireSegments(ctx: CanvasRenderingContext2D, state: EditorState): vo
     if (isSelected) {
       ctx.strokeStyle = "#3b82f6";
       ctx.lineWidth = 3;
-    } else if (state.simulationEnabled) {
+    } else {
       const signal = getWireSignal(state, wire.id);
       if (signal === 'E') {
         ctx.strokeStyle = "#ef4444"; // Red for error
@@ -122,9 +120,6 @@ function drawWireSegments(ctx: CanvasRenderingContext2D, state: EditorState): vo
         ctx.strokeStyle = "#6b7280"; // Gray for off
         ctx.lineWidth = 2;
       }
-    } else {
-      ctx.strokeStyle = colors.wireDefaultColor;
-      ctx.lineWidth = 2;
     }
     drawOrthogonalWire(ctx, from, wire.waypoints, to);
     ctx.restore();
@@ -236,57 +231,6 @@ function drawGhostPreview(ctx: CanvasRenderingContext2D, state: EditorState): vo
   ctx.save();
   ctx.globalAlpha = 0.4;
   def.draw(ctx, state.cursorPosition.x, state.cursorPosition.y);
-  ctx.restore();
-}
-
-function drawStepOverlay(
-  ctx: CanvasRenderingContext2D,
-  state: EditorState,
-  width: number,
-): void {
-  if (!state.simulationEnabled || state.simulationMode !== "step") return;
-
-  const { stepCount, stable } = state.stepSimulation;
-
-  const colors = getThemeColors();
-
-  ctx.save();
-
-  // Step counter — top right
-  const text = `Step ${stepCount}`;
-  ctx.font = "bold 14px monospace";
-  ctx.textAlign = "right";
-  ctx.textBaseline = "top";
-
-  // Background pill
-  const metrics = ctx.measureText(text);
-  const padding = 8;
-  const pillX = width - metrics.width - padding * 3;
-  const pillY = 8;
-  const pillW = metrics.width + padding * 2;
-  const pillH = 22;
-
-  ctx.fillStyle = colors.overlayBg;
-  if (typeof ctx.roundRect === "function") {
-    ctx.beginPath();
-    ctx.roundRect(pillX, pillY, pillW, pillH, 6);
-    ctx.fill();
-  } else {
-    ctx.fillRect(pillX, pillY, pillW, pillH);
-  }
-
-  // Text
-  ctx.fillStyle = "#ffffff";
-  ctx.fillText(text, width - padding * 2, pillY + 4);
-
-  // Stability dot
-  const dotX = pillX - 12;
-  const dotY = pillY + pillH / 2;
-  ctx.beginPath();
-  ctx.arc(dotX, dotY, 5, 0, Math.PI * 2);
-  ctx.fillStyle = stable ? "#22c55e" : "#eab308";
-  ctx.fill();
-
   ctx.restore();
 }
 

@@ -4,7 +4,6 @@ import {
   addComponent,
   addWire,
   toggleSwitchValue,
-  toggleSimulation,
 } from "@/state";
 import { evaluateCircuit, clearAllPinValues } from "@/core/simulation";
 import type { SignalValue } from "@/core/types";
@@ -30,7 +29,7 @@ function basicAndCircuit() {
 describe("evaluateCircuit", () => {
   it("propaga sinais: ambos switches OFF → light OFF", () => {
     const { state, gate, light } = basicAndCircuit();
-    state.simulationEnabled = true;
+    
     evaluateCircuit(state);
 
     const gatePins = gate.state.pinValues as number[];
@@ -42,7 +41,7 @@ describe("evaluateCircuit", () => {
 
   it("propaga sinais: um switch ON → light OFF (AND requer ambos)", () => {
     const { state, sw1, gate, light } = basicAndCircuit();
-    state.simulationEnabled = true;
+    
     sw1.state.value = 1;
     evaluateCircuit(state);
 
@@ -55,7 +54,7 @@ describe("evaluateCircuit", () => {
 
   it("propaga sinais: ambos switches ON → light ON", () => {
     const { state, sw1, sw2, gate, light } = basicAndCircuit();
-    state.simulationEnabled = true;
+    
     sw1.state.value = 1;
     sw2.state.value = 1;
     evaluateCircuit(state);
@@ -74,7 +73,7 @@ describe("evaluateCircuit", () => {
 
     // Only connect sw to input 0, leave input 1 disconnected
     addWire(state, { type: "pin", componentId: sw.id, pinIndex: 0 }, { type: "pin", componentId: gate.id, pinIndex: 0 });
-    state.simulationEnabled = true;
+    
     sw.state.value = 1;
     evaluateCircuit(state);
 
@@ -102,7 +101,7 @@ describe("evaluateCircuit", () => {
     // gate2 output → light
     addWire(state, { type: "pin", componentId: gate2.id, pinIndex: 2 }, { type: "pin", componentId: light.id, pinIndex: 0 });
 
-    state.simulationEnabled = true;
+    
 
     // All off → light off
     evaluateCircuit(state);
@@ -120,21 +119,6 @@ describe("evaluateCircuit", () => {
     expect(light.state.value).toBe(1);
   });
 
-  it("simulação desabilitada limpa pinValues", () => {
-    const { state, sw1, sw2, gate, light } = basicAndCircuit();
-    state.simulationEnabled = true;
-    sw1.state.value = 1;
-    sw2.state.value = 1;
-    evaluateCircuit(state);
-    expect(gate.state.pinValues).toBeDefined();
-    expect(light.state.value).toBe(1);
-
-    state.simulationEnabled = false;
-    evaluateCircuit(state);
-    expect(gate.state.pinValues).toBeUndefined();
-    expect(light.state.value).toBe(0); // reset to default
-  });
-
   it("ciclo estável: converge corretamente", () => {
     const state = createEditorState();
     const gate1 = addComponent(state, "and-gate", { x: 0, y: 0 });
@@ -144,7 +128,7 @@ describe("evaluateCircuit", () => {
     addWire(state, { type: "pin", componentId: gate1.id, pinIndex: 2 }, { type: "pin", componentId: gate2.id, pinIndex: 0 });
     addWire(state, { type: "pin", componentId: gate2.id, pinIndex: 2 }, { type: "pin", componentId: gate1.id, pinIndex: 0 });
 
-    state.simulationEnabled = true;
+    
     evaluateCircuit(state);
 
     // Cycle converges: both gates stabilize at [0, 0, 0] (no inputs, so outputs are 0)
@@ -167,7 +151,7 @@ describe("evaluateCircuit", () => {
     addWire(state, { type: "junction", junctionId: "junc-0" }, { type: "pin", componentId: light.id, pinIndex: 0 });
     addWire(state, { type: "pin", componentId: sw2.id, pinIndex: 0 }, { type: "junction", junctionId: "junc-0" });
 
-    state.simulationEnabled = true;
+    
     sw1.state.value = 1;
     sw2.state.value = 0;
     evaluateCircuit(state);
@@ -188,7 +172,7 @@ describe("evaluateCircuit", () => {
     addWire(state, { type: "junction", junctionId: "junc-0" }, { type: "pin", componentId: light.id, pinIndex: 0 });
     addWire(state, { type: "pin", componentId: sw2.id, pinIndex: 0 }, { type: "junction", junctionId: "junc-0" });
 
-    state.simulationEnabled = true;
+    
     sw1.state.value = 1;
     sw2.state.value = 1;
     evaluateCircuit(state);
@@ -218,37 +202,9 @@ describe("clearAllPinValues", () => {
   });
 });
 
-describe("toggleSimulation integration", () => {
-  it("toggleSimulation habilita e avalia circuito", () => {
+describe("toggleSwitchValue integration", () => {
+  it("toggleSwitchValue reavalia circuito", () => {
     const { state, sw1, sw2, light } = basicAndCircuit();
-    sw1.state.value = 1;
-    sw2.state.value = 1;
-
-    toggleSimulation(state);
-    evaluateCircuit(state);
-    expect(state.simulationEnabled).toBe(true);
-    expect(light.state.value).toBe(1);
-  });
-
-  it("toggleSimulation desabilita e limpa pinValues", () => {
-    const { state, sw1, sw2, gate, light } = basicAndCircuit();
-    sw1.state.value = 1;
-    sw2.state.value = 1;
-
-    toggleSimulation(state); // enable
-    evaluateCircuit(state);
-    expect(light.state.value).toBe(1);
-
-    toggleSimulation(state); // disable
-    evaluateCircuit(state);
-    expect(state.simulationEnabled).toBe(false);
-    expect(gate.state.pinValues).toBeUndefined();
-    expect(light.state.value).toBe(0);
-  });
-
-  it("toggleSwitchValue reavalia quando simulação ativa", () => {
-    const { state, sw1, sw2, light } = basicAndCircuit();
-    toggleSimulation(state); // enable
     evaluateCircuit(state);
 
     toggleSwitchValue(state, sw1.id);
@@ -258,20 +214,5 @@ describe("toggleSimulation integration", () => {
     toggleSwitchValue(state, sw2.id);
     evaluateCircuit(state);
     expect(light.state.value).toBe(1); // both on
-  });
-
-  it("modo default é instant — evaluateCircuit funciona normalmente", () => {
-    const state = createEditorState();
-    expect(state.simulationMode).toBe("instant");
-
-    const sw = addComponent(state, "switch", { x: 0, y: 0 });
-    const light = addComponent(state, "light", { x: 100, y: 0 });
-    addWire(state, { type: "pin", componentId: sw.id, pinIndex: 0 }, { type: "pin", componentId: light.id, pinIndex: 0 });
-
-    state.simulationEnabled = true;
-    sw.state.value = 1;
-    evaluateCircuit(state);
-
-    expect(light.state.value).toBe(1);
   });
 });

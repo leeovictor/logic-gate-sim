@@ -246,16 +246,3 @@ export function moonIcon(): SVGSVGElement {
   });
   return svg;
 }
-
-/** Lightning bolt for the Simulate toggle. */
-export function simulateIcon(): SVGSVGElement {
-  const svg = makeSvg("0 0 24 24");
-  add(svg, "path", {
-    d: "M13,2 L6,13 L12,13 L11,22 L18,11 L12,11 Z",
-    fill: "currentColor",
-    stroke: "none",
-  });
-  return svg;
-}
-
-

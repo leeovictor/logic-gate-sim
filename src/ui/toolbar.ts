@@ -11,18 +11,9 @@ import {
   xnorGateIcon,
   switchIcon,
   lightIcon,
-  simulateIcon,
   sunIcon,
   moonIcon,
 } from "./toolbar-icons";
-
-export interface StepControls {
-  onModeToggle: () => void;
-  onStep: () => void;
-  onPlayPause: () => void;
-  onReset: () => void;
-  onSpeedChange: (ms: number) => void;
-}
 
 const toolIcons: Partial<Record<ToolMode, () => SVGSVGElement>> = {
   select: selectIcon,
@@ -88,7 +79,6 @@ interface DropdownController {
 interface ShortcutBindings {
   topButtons: HTMLButtonElement[];
   dropdown: DropdownController | null;
-  simButton: HTMLButtonElement;
 }
 
 function createToolButton(
@@ -238,29 +228,6 @@ function createThemeToggleButton(
   return btn;
 }
 
-function createSimToggle(
-  onToggle: (enabled: boolean) => void,
-  onBeforeToggle?: () => void,
-): HTMLButtonElement {
-  const btn = document.createElement("button");
-  const label = document.createElement("span");
-  label.textContent = "\u26A1 Simulate";
-  const hint = document.createElement("span");
-  hint.className = "shortcut-hint";
-  hint.textContent = "T";
-  btn.appendChild(label);
-  btn.appendChild(hint);
-  btn.className = "sim-toggle";
-
-  btn.addEventListener("click", () => {
-    onBeforeToggle?.();
-    btn.classList.toggle("active");
-    onToggle(btn.classList.contains("active"));
-  });
-
-  return btn;
-}
-
 function createShareButton(onShare: () => void): HTMLButtonElement {
   const btn = document.createElement("button");
   const label = document.createElement("span");
@@ -277,127 +244,11 @@ function createShareButton(onShare: () => void): HTMLButtonElement {
   return btn;
 }
 
-function createStepPanel(controls: StepControls): HTMLDivElement {
-  const panel = document.createElement("div");
-  panel.className = "step-panel";
-  panel.style.display = "none";
-
-  // Mode toggle button
-  const modeBtn = document.createElement("button");
-  modeBtn.className = "step-btn";
-  modeBtn.dataset.stepMode = "true";
-  modeBtn.textContent = "Step";
-  modeBtn.title = "Modo Step (M)";
-  const modeHint = document.createElement("span");
-  modeHint.className = "shortcut-hint";
-  modeHint.textContent = "M";
-  modeBtn.appendChild(modeHint);
-  modeBtn.addEventListener("click", controls.onModeToggle);
-
-  // Step button
-  const stepBtn = document.createElement("button");
-  stepBtn.className = "step-btn";
-  stepBtn.dataset.stepExecute = "true";
-  stepBtn.textContent = "▶|";
-  stepBtn.title = "Executar Step (N)";
-  const stepHint = document.createElement("span");
-  stepHint.className = "shortcut-hint";
-  stepHint.textContent = "N";
-  stepBtn.appendChild(stepHint);
-  stepBtn.addEventListener("click", controls.onStep);
-
-  // Play/Pause button
-  const playBtn = document.createElement("button");
-  playBtn.className = "step-btn";
-  playBtn.dataset.stepPlay = "true";
-  playBtn.textContent = "▶";
-  playBtn.title = "Auto-Step (P)";
-  const playHint = document.createElement("span");
-  playHint.className = "shortcut-hint";
-  playHint.textContent = "P";
-  playBtn.appendChild(playHint);
-  playBtn.addEventListener("click", controls.onPlayPause);
-
-  // Reset button
-  const resetBtn = document.createElement("button");
-  resetBtn.className = "step-btn";
-  resetBtn.dataset.stepReset = "true";
-  resetBtn.textContent = "⟲";
-  resetBtn.title = "Reset (R)";
-  resetBtn.addEventListener("click", controls.onReset);
-
-  // Speed slider
-  const speedLabel = document.createElement("span");
-  speedLabel.className = "step-label";
-  speedLabel.textContent = "500ms";
-  speedLabel.dataset.speedLabel = "true";
-
-  const speedSlider = document.createElement("input");
-  speedSlider.type = "range";
-  speedSlider.className = "step-slider";
-  speedSlider.min = "100";
-  speedSlider.max = "2000";
-  speedSlider.step = "100";
-  speedSlider.value = "500";
-  speedSlider.addEventListener("input", () => {
-    const ms = parseInt(speedSlider.value, 10);
-    speedLabel.textContent = `${ms}ms`;
-    controls.onSpeedChange(ms);
-  });
-
-  // Step counter
-  const counter = document.createElement("span");
-  counter.className = "step-counter";
-  counter.textContent = "Step: 0";
-  counter.dataset.counter = "true";
-
-  // Stability indicator
-  const indicator = document.createElement("span");
-  indicator.className = "step-indicator";
-  indicator.textContent = "●";
-  indicator.dataset.indicator = "true";
-
-  panel.appendChild(modeBtn);
-  panel.appendChild(stepBtn);
-  panel.appendChild(playBtn);
-  panel.appendChild(resetBtn);
-  panel.appendChild(speedSlider);
-  panel.appendChild(speedLabel);
-  panel.appendChild(counter);
-  panel.appendChild(indicator);
-
-  return panel;
-}
-
 
 function bindToolbarShortcuts(bindings: ShortcutBindings): void {
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       bindings.dropdown?.close();
-      return;
-    }
-    if (e.key === "t" || e.key === "T") {
-      bindings.simButton.click();
-      return;
-    }
-    if (e.key === "m" || e.key === "M") {
-      const modeBtn = document.querySelector("[data-step-mode]") as HTMLButtonElement;
-      modeBtn?.click();
-      return;
-    }
-    if (e.key === "n" || e.key === "N") {
-      const stepBtn = document.querySelector("[data-step-execute]") as HTMLButtonElement;
-      stepBtn?.click();
-      return;
-    }
-    if (e.key === "p" || e.key === "P") {
-      const playBtn = document.querySelector("[data-step-play]") as HTMLButtonElement;
-      playBtn?.click();
-      return;
-    }
-    if (e.key === "r" || e.key === "R") {
-      const resetBtn = document.querySelector("[data-step-reset]") as HTMLButtonElement;
-      resetBtn?.click();
       return;
     }
 
@@ -436,10 +287,8 @@ function bindToolbarShortcuts(bindings: ShortcutBindings): void {
 
 export function createToolbar(
   onToolSelect: (tool: ToolMode | null) => void,
-  onSimulationToggle: (enabled: boolean) => void,
   events: EventTarget,
   onShare?: () => void,
-  stepControls?: StepControls,
   onThemeToggle?: (theme: "light" | "dark") => void,
   initialTheme?: "light" | "dark",
 ): HTMLDivElement {
@@ -477,22 +326,13 @@ export function createToolbar(
     shortcutIndex++;
   }
 
-  const separator = document.createElement("div");
-  separator.className = "separator";
-  toolbar.appendChild(separator);
-
-  const simBtn = createSimToggle(onSimulationToggle, () => dropdown?.close());
-  toolbar.appendChild(simBtn);
-
   if (onShare) {
+    const separator = document.createElement("div");
+    separator.className = "separator";
+    toolbar.appendChild(separator);
+
     const shareBtn = createShareButton(onShare);
     toolbar.appendChild(shareBtn);
-  }
-
-  let stepPanel: HTMLDivElement | null = null;
-  if (stepControls) {
-    stepPanel = createStepPanel(stepControls);
-    toolbar.appendChild(stepPanel);
   }
 
   if (onThemeToggle) {
@@ -503,29 +343,13 @@ export function createToolbar(
     toolbar.appendChild(themeBtn);
   }
 
-  events.addEventListener("stepupdate", (e: Event) => {
-    if (!stepPanel) return;
-    const detail = (e as CustomEvent<{ stepCount: number; stable: boolean; mode: string }>).detail;
-
-    const counter = stepPanel.querySelector("[data-counter]");
-    if (counter) counter.textContent = `Step: ${detail.stepCount}`;
-
-    const indicator = stepPanel.querySelector("[data-indicator]") as HTMLElement;
-    if (indicator) {
-      indicator.style.color = detail.stable ? "#22c55e" : "#eab308";
-      indicator.title = detail.stable ? "Estável" : "Propagando";
-    }
-
-    stepPanel.style.display = detail.mode === "step" ? "flex" : "none";
-  });
-
   document.addEventListener("click", (e) => {
     if (dropdown && !dropdown.wrapper.contains(e.target as Node)) {
       dropdown.close();
     }
   });
 
-  bindToolbarShortcuts({ topButtons, dropdown, simButton: simBtn });
+  bindToolbarShortcuts({ topButtons, dropdown });
 
   return toolbar;
 }

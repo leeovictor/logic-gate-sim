@@ -1,4 +1,4 @@
-import type { EditorState, Point, WireEndpoint, Viewport } from "@/core/types";
+import type { EditorState, Point, WireEndpoint } from "@/core/types";
 import { getComponentDef } from "@/core/registry";
 
 export function createEditorState(): EditorState {
@@ -17,16 +17,6 @@ export function createEditorState(): EditorState {
     hoveredPin: null,
     dragging: null,
     selectionBox: null,
-    simulationEnabled: false,
-    simulationMode: "instant",
-    stepSimulation: {
-      stepCount: 0,
-      running: false,
-      stepInterval: 500,
-      autoStepTimer: null,
-      previousNetValues: new Map(),
-      stable: false,
-    },
     events: new EventTarget(),
     nets: [],
     _nextId: 0,

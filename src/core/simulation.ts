@@ -199,17 +199,6 @@ function evaluateOneIteration(state: EditorState): void {
 }
 
 export function evaluateCircuit(state: EditorState): void {
-  if (!state.simulationEnabled) {
-    clearAllPinValues(state);
-    return;
-  }
-
-  // In step mode, only rebuild nets — propagation is user-controlled
-  if (state.simulationMode === "step") {
-    state.nets = buildNets(state);
-    return;
-  }
-
   // Build nets
   state.nets = buildNets(state);
 
@@ -248,74 +237,6 @@ export function evaluateCircuit(state: EditorState): void {
   if (didNotConverge) {
     clearAllPinValues(state);
   }
-}
-
-export function stepCircuit(state: EditorState): void {
-  if (!state.simulationEnabled) return;
-
-  // Build/rebuild nets if needed (first step or topology changed)
-  if (state.stepSimulation.stepCount === 0 || state.nets.length === 0) {
-    state.nets = buildNets(state);
-    // Initialize net signals to 0 on first step only
-    if (state.stepSimulation.stepCount === 0) {
-      for (const net of state.nets) {
-        net.signalValue = 0;
-      }
-    }
-  }
-
-  // Snapshot current net values for stability detection
-  const prevNetValues = new Map(
-    state.nets.map((n) => [n.id, n.signalValue])
-  );
-
-  // Execute one propagation iteration
-  evaluateOneIteration(state);
-
-  // Detect stability: compare current net values with previous
-  let stable = true;
-  for (const net of state.nets) {
-    if (prevNetValues.get(net.id) !== net.signalValue) {
-      stable = false;
-      break;
-    }
-  }
-
-  state.stepSimulation.previousNetValues = prevNetValues;
-  state.stepSimulation.stable = stable;
-  state.stepSimulation.stepCount++;
-}
-
-export function resetStepSimulation(state: EditorState): void {
-  stopAutoStep(state);
-  state.stepSimulation.stepCount = 0;
-  state.stepSimulation.stable = false;
-  state.stepSimulation.previousNetValues.clear();
-  clearAllPinValues(state);
-  // Reset net signals to 0
-  for (const net of state.nets) {
-    net.signalValue = 0;
-  }
-}
-
-export function startAutoStep(
-  state: EditorState,
-  onStep: () => void,
-): void {
-  if (state.stepSimulation.running) return;
-  state.stepSimulation.running = true;
-  state.stepSimulation.autoStepTimer = setInterval(() => {
-    stepCircuit(state);
-    onStep();
-  }, state.stepSimulation.stepInterval);
-}
-
-export function stopAutoStep(state: EditorState): void {
-  if (state.stepSimulation.autoStepTimer !== null) {
-    clearInterval(state.stepSimulation.autoStepTimer);
-    state.stepSimulation.autoStepTimer = null;
-  }
-  state.stepSimulation.running = false;
 }
 
 export function clearAllPinValues(state: EditorState): void {

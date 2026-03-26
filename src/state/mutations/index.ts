@@ -43,12 +43,6 @@ export {
 } from "./selection";
 
 export {
-  setSimulationMode,
-  performStep,
-  toggleAutoStep,
-  setStepInterval,
-  resetStep,
-  toggleSimulation,
   setTheme,
 } from "./simulation";
 
