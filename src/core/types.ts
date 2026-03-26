@@ -96,6 +96,7 @@ export interface DragState {
   offset: Point;
   offsets: Map<string, Point>;
   junctionOffsets: Map<string, Point>;
+  waypointOffsets: Map<string, Point[]>;
 }
 
 export interface Viewport {

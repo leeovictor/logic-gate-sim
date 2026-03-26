@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createEditorState, addComponent, setSelectedTool, startDrag, updateDrag, endDrag, startSelectionBox, updateSelectionBox, endSelectionBox } from "@/state";
+import { createEditorState, addComponent, setSelectedTool, startDrag, updateDrag, endDrag, startSelectionBox, updateSelectionBox, endSelectionBox, addWireSegment } from "@/state";
 
 describe("createEditorState", () => {
   it("returns initial state with no tool and no components", () => {
@@ -233,5 +233,57 @@ describe("multi-component drag", () => {
 
     expect(a.position).toEqual({ x: 100, y: 100 });
     expect(b.position).toEqual({ x: 150, y: 150 });
+  });
+
+  it("dragging selected components moves wire waypoints of selected wires", () => {
+    const state = createEditorState();
+    const a = addComponent(state, "and-gate", { x: 50, y: 50 });
+    const b = addComponent(state, "and-gate", { x: 250, y: 250 });
+
+    // Add a wire with waypoints between the two components
+    const wire = addWireSegment(
+      state,
+      { type: "pin", componentId: a.id, pinIndex: 2 },
+      { type: "pin", componentId: b.id, pinIndex: 0 },
+      [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+    );
+
+    // Select both components and the wire
+    state.selectedComponentIds.add(a.id);
+    state.selectedComponentIds.add(b.id);
+    state.selectedWireIds.add(wire!.id);
+
+    // Click on component a at (60, 60), offset = (10, 10)
+    startDrag(state, a.id, { x: 10, y: 10 });
+    // Move cursor to (110, 110) → delta of +50, +50
+    updateDrag(state, { x: 110, y: 110 });
+
+    expect(a.position).toEqual({ x: 100, y: 100 });
+    expect(b.position).toEqual({ x: 300, y: 300 });
+    // Waypoints should move by the same delta (+50, +50)
+    expect(wire!.waypoints).toEqual([{ x: 150, y: 150 }, { x: 250, y: 250 }]);
+  });
+
+  it("dragging does not move waypoints of unselected wires", () => {
+    const state = createEditorState();
+    const a = addComponent(state, "and-gate", { x: 50, y: 50 });
+    const b = addComponent(state, "and-gate", { x: 250, y: 250 });
+
+    const wire = addWireSegment(
+      state,
+      { type: "pin", componentId: a.id, pinIndex: 2 },
+      { type: "pin", componentId: b.id, pinIndex: 0 },
+      [{ x: 100, y: 100 }],
+    );
+
+    // Select components but NOT the wire
+    state.selectedComponentIds.add(a.id);
+    state.selectedComponentIds.add(b.id);
+
+    startDrag(state, a.id, { x: 10, y: 10 });
+    updateDrag(state, { x: 110, y: 110 });
+
+    // Waypoints should stay at original position
+    expect(wire!.waypoints).toEqual([{ x: 100, y: 100 }]);
   });
 });
