@@ -22,6 +22,8 @@ export {
   addPendingWaypoint,
   addWire,
   addWireSegment,
+  copySelection,
+  pasteClipboard,
   clearPendingWire,
   clearSelection,
   deleteSelected,

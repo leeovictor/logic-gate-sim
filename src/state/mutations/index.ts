@@ -1,3 +1,4 @@
+export { copySelection, pasteClipboard } from "./clipboard";
 export {
   addComponent,
   setSelectedTool,

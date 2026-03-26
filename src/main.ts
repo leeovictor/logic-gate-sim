@@ -3,9 +3,11 @@ import { evaluateCircuit } from "@/core/simulation";
 import {
   clearPendingWire,
   clearSelection,
+  copySelection,
   createEditorState,
   createHistory,
   deleteSelected,
+  pasteClipboard,
   popLastSnapshot,
   pushSnapshot,
   redo,
@@ -155,6 +157,35 @@ window.addEventListener("keydown", (e) => {
   }
   if (e.key === "Escape") {
     clearPendingWire(state);
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === "c") {
+    // Don't intercept if focus is inside a text input/textarea
+    if (
+      document.activeElement &&
+      (document.activeElement.tagName === "INPUT" ||
+        document.activeElement.tagName === "TEXTAREA")
+    ) {
+      return;
+    }
+    e.preventDefault();
+    copySelection(state);
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === "v") {
+    if (
+      document.activeElement &&
+      (document.activeElement.tagName === "INPUT" ||
+        document.activeElement.tagName === "TEXTAREA")
+    ) {
+      return;
+    }
+    e.preventDefault();
+    pushSnapshot(history, state);
+    if (pasteClipboard(state)) {
+      reEvaluate();
+      save();
+    } else {
+      popLastSnapshot(history);
+    }
   }
   if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
     e.preventDefault();
