@@ -10,39 +10,26 @@ A browser-based digital logic circuit editor and simulator built with TypeScript
 ## Features
 
 ### Circuit Design
-- Full-viewport HTML5 Canvas rendering
 - Toolbar with selectable component modes
 - Place logic gates by clicking the canvas
-- Ghost preview follows cursor while placing
 - Wire connections between component pins (output → input)
 - Select, drag, and multi-select components (Ctrl+click and selection box)
 - Undo/redo support (Ctrl+Z / Ctrl+Shift+Z)
 
 ### Simulation
 - Real-time circuit evaluation with topological sort (Kahn's algorithm)
-- Cycle detection and graceful handling
 - Toggle switch inputs by clicking in select mode
-- Light component as visual output indicator
-- Signal propagation: `1` (on) / `0` (off)
-
-### Supported Components
-- **AND Gate** — logical AND of 2 inputs
-- **OR Gate** — logical OR of 2 inputs  
-- **NOT Gate** — logical NOT (inverter)
-- **Switch** — toggle input (0/1)
-- **Light** — output indicator (visual feedback)
 
 ### Data Persistence & Sharing
-- Save/load circuits in browser localStorage
+- Auto Save/Load circuits
 - Export circuits as compressed shareable URLs
 - Import circuits from shared links
-- JSON circuit format with optional compression
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18 or later
-- npm or yarn
+- Node.js 22 or later
+- npm
 
 ### Installation & Development
 
@@ -213,18 +200,7 @@ Test files use [Vitest](https://vitest.dev/) and mock the Canvas 2D context with
 ### Code Style
 
 - Follow existing patterns in the codebase
-- No linter or formatter configured — maintain consistency with surrounding code
 - Write unit tests for new logic
-
-## Roadmap
-
-Planned features tracked in [plans/](plans/):
-- Flexible wire routing (curved paths, grid snapping)
-- Circuit sharing via URL
-- URL compression for large circuits
-- Additional component types (XOR, NAND, NOR, etc.)
-- Keyboard shortcuts for common operations
-- Dark/light theme toggle
 
 ## License
 
